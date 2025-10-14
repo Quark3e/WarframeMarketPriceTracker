@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HPP_WMPT_GETDATA
-#define HPP_WMPT_GETDATA
+#ifndef HPP_WMPT_FUNCTIONS
+#define HPP_WMPT_FUNCTIONS
 
 
 #include <string>
@@ -13,4 +13,8 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
 std::string http_get(const std::string& url);
 
 
-#endif // HPP_WMPT_GETDATA
+
+
+
+
+#endif // HPP_WMPT_FUNCTIONS

@@ -1,6 +1,6 @@
 
 #include "wmpt_useful.hpp"
-#include "wmpt_getData.hpp"
+#include "wmpt_functions.hpp"
 #include "wmpt_variables.hpp"
 
 
@@ -11,6 +11,9 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+
+
+
 
 
 int main(int argc, char** argv) {
