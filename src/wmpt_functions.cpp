@@ -1,5 +1,5 @@
 
-#include "wmpt_getData.hpp"
+#include "wmpt_functions.hpp"
 
 
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output) {
