@@ -27,22 +27,29 @@ int main(int argc, char** argv) {
 	Pos2d<int> terminalDim{0, 0};
 	Useful::getTerminalSize(terminalDim.x, terminalDim.y);
 	Useful::clearScreen();
-	// while (true) {
-	// 	// Useful::ANSI_mvprint(0, 0, "", false, "abs", "abs", true);
-	// 	TUI_drawBG();
-	// 	std::vector<int> pressedKeys = getKeyCode();
-	// 	std::string printStr = std::string("Reading key: ")+Useful::formatVector(pressedKeys);
-	// 	Useful::ANSI_mvprint(2, 2, printStr+std::string((printStr.size()<terminalDim.x-1? terminalDim.x-1-printStr.size() : 0), ' '), true, "abs", "abs");
-	// 	std::this_thread::sleep_for(std::chrono::duration<double>(0.1));
-	// 	if(pressedKeys.size()>0 && 'x'==static_cast<char>(pressedKeys.at(0))) break;
-	// }
-	// exit(0);
+	
+	keyPressHandler KeysObj();
+	keyObj.updateKeys(getKeyCode());
+
+	while (true) {
+		// Useful::ANSI_mvprint(0, 0, "", false, "abs", "abs", true);
+		TUI_drawBG();
+		std::vector<int> pressedKeys = getKeyCode();
+		std::string printStr = std::string("Reading key: ")+Useful::formatVector(pressedKeys);
+		Useful::ANSI_mvprint(2, 2, printStr+std::string((printStr.size()<terminalDim.x-1? terminalDim.x-1-printStr.size() : 0), ' '), true, "abs", "abs");
+		std::this_thread::sleep_for(std::chrono::duration<double>(0.1));
+		if(pressedKeys.size()>0 && 'x'==static_cast<char>(pressedKeys.at(0))) break;
+	}
+	exit(0);
 
 	/// ---------- Load all items ----------
 	type_AllItems AllItems = LoadAllItems();
 
 	std::vector<TrackItem> AllTrackedItems;
 
+
+	// keyPressHandler KeysObj();
+	// keyObj.updateKeys(getKeyCode());
 
 	float fpsCap = 60;
 	std::chrono::steady_clock::time_point time_T1, time_T2;
