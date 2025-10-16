@@ -4,13 +4,32 @@
 
 
 #include <string>
+#include <vector>
 #include <curl/curl.h>
+#include <iostream>
+#include <Windows.h>
 
+#include <Pos2d.hpp>
+#include "wmpt_useful.hpp"
 
 // Callback function to write data to string
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
-
 std::string http_get(const std::string& url);
+
+
+/**
+ * @brief Retrieves a vector of key codes from the user input.
+ *
+ * This function prompts the user to enter key codes and returns them as a vector of integers.
+ * 
+ * @param _verbose If set to true, the function provides detailed output about the process.
+ *                 Defaults to false.
+ * @return std::vector<int> A vector containing the entered key codes.
+ */
+std::vector<int> getKeyCode(bool _verbose=false);
+
+
+void TUI_drawBG();
 
 
 #include "wmpt_variables.hpp"
@@ -19,37 +38,7 @@ std::string http_get(const std::string& url);
 
 using json = nlohmann::json;
 
-type_AllItems LoadAllItems() {
-    std::string urlString = apiURL_base + apiURL_addon__allItems;
-
-    json parsedJson;
-    type_AllItems parsedItems;
-
-    try {
-        std::string getStr = http_get(urlString);
-
-        parsedJson = json::parse(getStr);
-    }
-    catch(const std::exception& e) {
-        std::cerr << e.what() << '\n';
-        exit(1);
-    }
-    
-
-    for(auto itr=parsedJson["data"].begin(); itr!=parsedJson["data"].end(); ++itr) {
-        std::string _id=itr->at("id"), _key=itr->at("slug");
-        
-        itemType _type = itemType_default;
-        for(auto tagItr=itr->begin(); tagItr!=itr->end(); ++tagItr) {
-            _type = find_itemType(tagItr.key());
-        }
-
-        parsedItems[itr->at("slug")] = {_id, _key, _type};
-    }
-
-
-    return parsedItems;
-}
+type_AllItems LoadAllItems();
 
 
 #endif // HPP_WMPT_FUNCTIONS

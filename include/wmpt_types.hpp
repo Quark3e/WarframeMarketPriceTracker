@@ -28,20 +28,7 @@ enum itemType {
     itemType_Component,
 };
 
-itemType find_itemType(std::string _typeStr) {
-    itemType _type = itemType_default;
-
-    if(_typeStr=="mod") {
-        return itemType_Mods;
-    }
-    else if(_typeStr=="component") {
-        return itemType_Component;
-    }
-    
-    // throw CustomException("no valid type found");
-
-    return _type;
-}
+itemType find_itemType(std::string _typeStr);
 
 
 struct itemInfo {
@@ -51,11 +38,27 @@ struct itemInfo {
     itemType    type;
 };
 
+enum trackType {
+    trackType_buy,
+    trackType_sell
+};
+struct TrackItem {
+    std::string id;
+    std::string name;
+
+    trackType   typeOfTrack;
+
+    int plat_min;
+    int plat_max;
+};
+
+
 /**
  * Type holder for the container that holds all items.
  * 
  * structure: `std::map<{item name}, itemInfo>`
  */
 using type_AllItems = std::map<std::string, itemInfo>;
+
 
 #endif //HPP_WMPT_TYPES

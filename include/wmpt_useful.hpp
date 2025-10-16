@@ -417,7 +417,7 @@ namespace Useful {
         }
     }
 
-    struct tm time_string_to_tm(const std::string& time_str) {
+    inline struct tm time_string_to_tm(const std::string& time_str) {
         if (time_str.length() != 8 || time_str[2] != ':' || time_str[5] != ':') {
             throw std::invalid_argument("Invalid time format. Expected 'hh:mm:ss'");
         }
