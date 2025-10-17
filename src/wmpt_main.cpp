@@ -36,11 +36,16 @@ int main(int argc, char** argv) {
 		TUI_drawBG();
 		std::vector<int> pressedKeys = getKeyCode();
 		KeysObj.updateKeys(pressedKeys);
+		auto keyDetails = KeysObj.getAllKeyDetails();
+		
 		std::string printStr = std::string("Reading key: ")+Useful::formatVector(pressedKeys);
 		Useful::ANSI_mvprint(2, 2, Useful::formatNumber(printStr, terminalDim.x-2,0,"left"), false);
 		Useful::ANSI_mvprint(2, 3, Useful::formatNumber(Useful::formatVector(KeysObj.getActiveKeys()),terminalDim.x-2,0,"left"), false);
 		Useful::ANSI_mvprint(2, 4, Useful::formatNumber(KeysObj.getActiveKeys().size(),terminalDim.x-2,0,"left"), false);
-		
+
+		for(size_t i=0; i<256; i++) {
+			Useful::ANSI_mvprint(2, 6+i, std::string(KeysObj.getKeyDetail(i)), false);
+		}
 
 		std::cout.flush();
 		std::this_thread::sleep_for(std::chrono::duration<double>(0.1));

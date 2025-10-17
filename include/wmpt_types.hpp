@@ -4,6 +4,7 @@
 
 
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <map>
 #include <vector>
@@ -11,10 +12,13 @@
 
 #include <stdexcept>
 
+#include <iostream>
+#include <iomanip>
+
 #ifndef NOMINMAX
 # define NOMINMAX
 #endif
-#include <windows.h>
+// #include <windows.h>
 #undef max
 
 class CustomException : public std::exception {
@@ -63,10 +67,23 @@ struct __keyPressHandler_keyDetails {
     std::chrono::steady_clock::time_point startTime; // time since press start
     bool isPressed; // whether the key is actually being pressed
     bool active; // whether this key is to give a signal as being pressed.
+
+
+    operator std::string() {
+        std::stringstream ss;
+        ss << this->startTime << "," << std::boolalpha << this->m.isPressed << "," << this->active;
+        
+        return ss.str();
+    }
+
+    friend auto operator<<(std::ostream &os, __keyPressHandler_keyDetails const& m) -> std::ostream& {
+        os << m.startTime << "," << std::boolalpha << m.isPressed <<  "," m.active;
+
+        return os;
+    }
 };
 class keyPressHandler {
 private:
-public:
     // std::vector<int> __keys_pressed;
     // std::vector<std::chrono::steady_clock::time_point> __keys_timePressed;
     std::unordered_map<int, __keyPressHandler_keyDetails> __pressed_keys;
@@ -137,6 +154,12 @@ public:
 
     const std::vector<int>& getActiveKeys() {
         return __active_keys;
+    }
+    __keyPressHandler_keyDetails getKeyDetail(int _key) {
+        return __pressed_keys.at(_key);
+    }
+    std::unordered_map<int, __keyPressHandler_keyDetails> getAllKeyDetails() {
+        return __pressed_keys;
     }
 
 };
