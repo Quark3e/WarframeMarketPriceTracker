@@ -43,8 +43,9 @@ int main(int argc, char** argv) {
 		Useful::ANSI_mvprint(2, 3, Useful::formatNumber(Useful::formatVector(KeysObj.getActiveKeys()),terminalDim.x-2,0,"left"), false);
 		Useful::ANSI_mvprint(2, 4, Useful::formatNumber(KeysObj.getActiveKeys().size(),terminalDim.x-2,0,"left"), false);
 
+        Useful::ANSI_mvprint(2, 6, std::string("timeNow:")+Useful::formatNumber(KeysObj.refrTime_now,terminalDiom.x-2-8,0,"left"), false);
 		for(size_t i=0; i<256; i++) {
-			Useful::ANSI_mvprint(2, 6+i, std::string(KeysObj.getKeyDetail(i)), false);
+			Useful::ANSI_mvprint(2, 7+i, Useful::formatNumber<std::string>(KeysObj.getKeyDetail(i),terminalDim.x-2,0,"left"), false);
 		}
 
 		std::cout.flush();

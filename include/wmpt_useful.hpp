@@ -458,6 +458,9 @@ namespace Useful {
         if (endTime_text[strlen(endTime_text)-1] == '\n') endTime_text[strlen(endTime_text)-1] = '\0';
         return std::string(endTime_text);
     }
+    inline std::string formatTimePoint(std::chrono::steady_clock::time_point _timeVar) {
+        // auto tEnd_time = std::chrono::s
+    }
     
     inline std::string formatDuration(std::chrono::duration<double> _duration) {
         std::stringstream fullString;

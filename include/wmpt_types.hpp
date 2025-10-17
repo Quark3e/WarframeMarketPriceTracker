@@ -91,6 +91,7 @@ private:
     std::vector<int> __active_keys;
 
 public:
+    std::chrono::steady_clock::time_point refrTime_now;
     std::chrono::duration<double> pressTypeDifrDecayDur_seconds = std::chrono::duration<double>(0.5);
 
     keyPressHandler() {
@@ -117,13 +118,13 @@ public:
     }
 
     const std::vector<int>& updateKeys(const std::vector<int>& newKeys) {
-        auto time_now = std::chrono::steady_clock::now();
+        refrTime_now = std::chrono::steady_clock::now();
 
         for(size_t i=0; i<256; i++) __pressed_keys[i].isPressed = false;
         for(size_t i=0; i<newKeys.size(); i++) {
             __pressed_keys[i].isPressed = true;
             if(__pressed_keys[newKeys.at(i)].startTime==std::chrono::time_point<std::chrono::steady_clock>::max()) {
-                __pressed_keys[newKeys.at(i)].startTime = time_now;
+                __pressed_keys[newKeys.at(i)].startTime = refrTime_now;
                 // __pressed_keys[newKeys.at(i)].active = true;
             }
             else {
@@ -140,7 +141,7 @@ public:
                 continue;
             }
 
-            if(keyRef.startTime==time_now || (time_now-keyRef.startTime)>pressTypeDifrDecayDur_seconds) {
+            if(keyRef.startTime==refrTime_now || (refrTime_now-keyRef.startTime)>pressTypeDifrDecayDur_seconds) {
                 keyRef.active = true;
                 __active_keys.push_back(i);
             }
