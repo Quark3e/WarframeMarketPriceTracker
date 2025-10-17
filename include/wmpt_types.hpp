@@ -9,9 +9,13 @@
 #include <vector>
 #include <chrono>
 
-
 #include <stdexcept>
 
+#ifndef NOMINMAX
+# define NOMINMAX
+#endif
+#include <windows.h>
+#undef max
 
 class CustomException : public std::exception {
 private:
@@ -62,7 +66,7 @@ struct __keyPressHandler_keyDetails {
 };
 class keyPressHandler {
 private:
-
+public:
     // std::vector<int> __keys_pressed;
     // std::vector<std::chrono::steady_clock::time_point> __keys_timePressed;
     std::unordered_map<int, __keyPressHandler_keyDetails> __pressed_keys;
@@ -74,8 +78,8 @@ public:
 
     keyPressHandler() {
         for(size_t i=0; i<256; i++) {
-            __pressed_keys[i] = {
-                std::chrono::steady_clock::time_point::max(),
+            __pressed_keys[i] = __keyPressHandler_keyDetails{
+                std::chrono::time_point<std::chrono::steady_clock>::max(),
                 false,
                 false
             };
@@ -101,7 +105,7 @@ public:
         for(size_t i=0; i<256; i++) __pressed_keys[i].isPressed = false;
         for(size_t i=0; i<newKeys.size(); i++) {
             __pressed_keys[i].isPressed = true;
-            if(__pressed_keys[newKeys.at(i)].startTime==std::chrono::steady_clock::time_point::max()) {
+            if(__pressed_keys[newKeys.at(i)].startTime==std::chrono::time_point<std::chrono::steady_clock>::max()) {
                 __pressed_keys[newKeys.at(i)].startTime = time_now;
                 // __pressed_keys[newKeys.at(i)].active = true;
             }
@@ -114,7 +118,7 @@ public:
             __keyPressHandler_keyDetails& keyRef = __pressed_keys[i];
 
             if(!keyRef.isPressed) {
-                keyRef.startTime = std::chrono::steady_clock::time_point::max();
+                keyRef.startTime = std::chrono::time_point<std::chrono::steady_clock>::max();
                 keyRef.active = false;
                 continue;
             }

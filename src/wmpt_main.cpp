@@ -28,15 +28,21 @@ int main(int argc, char** argv) {
 	Useful::getTerminalSize(terminalDim.x, terminalDim.y);
 	Useful::clearScreen();
 	
-	keyPressHandler KeysObj();
-	keyObj.updateKeys(getKeyCode());
+	keyPressHandler KeysObj;
+	KeysObj.updateKeys(getKeyCode());
 
 	while (true) {
 		// Useful::ANSI_mvprint(0, 0, "", false, "abs", "abs", true);
 		TUI_drawBG();
 		std::vector<int> pressedKeys = getKeyCode();
+		KeysObj.updateKeys(pressedKeys);
 		std::string printStr = std::string("Reading key: ")+Useful::formatVector(pressedKeys);
-		Useful::ANSI_mvprint(2, 2, printStr+std::string((printStr.size()<terminalDim.x-1? terminalDim.x-1-printStr.size() : 0), ' '), true, "abs", "abs");
+		Useful::ANSI_mvprint(2, 2, Useful::formatNumber(printStr, terminalDim.x-2,0,"left"), false);
+		Useful::ANSI_mvprint(2, 3, Useful::formatNumber(Useful::formatVector(KeysObj.getActiveKeys()),terminalDim.x-2,0,"left"), false);
+		Useful::ANSI_mvprint(2, 4, Useful::formatNumber(KeysObj.getActiveKeys().size(),terminalDim.x-2,0,"left"), false);
+		
+
+		std::cout.flush();
 		std::this_thread::sleep_for(std::chrono::duration<double>(0.1));
 		if(pressedKeys.size()>0 && 'x'==static_cast<char>(pressedKeys.at(0))) break;
 	}
