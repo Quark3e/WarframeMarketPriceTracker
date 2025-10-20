@@ -71,13 +71,13 @@ struct __keyPressHandler_keyDetails {
 
     operator std::string() {
         std::stringstream ss;
-        ss << this->startTime << "," << std::boolalpha << this->m.isPressed << "," << this->active;
+        ss << this->startTime.time_since_epoch().count() << "," << std::boolalpha << this->isPressed << "," << this->active;
         
         return ss.str();
     }
 
     friend auto operator<<(std::ostream &os, __keyPressHandler_keyDetails const& m) -> std::ostream& {
-        os << m.startTime << "," << std::boolalpha << m.isPressed <<  "," m.active;
+        os << m.startTime.time_since_epoch().count() << "," << std::boolalpha << m.isPressed <<  ","<< m.active;
 
         return os;
     }
@@ -122,7 +122,7 @@ public:
 
         for(size_t i=0; i<256; i++) __pressed_keys[i].isPressed = false;
         for(size_t i=0; i<newKeys.size(); i++) {
-            __pressed_keys[i].isPressed = true;
+            __pressed_keys[newKeys.at(i)].isPressed = true;
             if(__pressed_keys[newKeys.at(i)].startTime==std::chrono::time_point<std::chrono::steady_clock>::max()) {
                 __pressed_keys[newKeys.at(i)].startTime = refrTime_now;
                 // __pressed_keys[newKeys.at(i)].active = true;
@@ -161,6 +161,10 @@ public:
     }
     std::unordered_map<int, __keyPressHandler_keyDetails> getAllKeyDetails() {
         return __pressed_keys;
+    }
+
+    bool isPressed(int _key) {
+        return this->__pressed_keys.at(_key).isPressed;
     }
 
 };
