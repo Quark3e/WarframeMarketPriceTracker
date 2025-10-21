@@ -16,6 +16,10 @@
 #include <iostream>
 #include <iomanip>
 
+#include <thread>
+#include <mutex>
+#include <atomic>
+
 #include "wmpt_useful.hpp"
 
 #ifndef NOMINMAX
@@ -207,6 +211,67 @@ public:
         return this->__pressed_keys.at(_key).isPressed;
     }
 
+};
+
+
+
+class subThread_TrackerClass {
+private:
+    std::vector<TrackItem> __ItemsToTrack;
+    std::mutex __mtx_ItemsToTrack;
+
+
+    std::atomic<bool> __running{false};
+    bool __isInitialised = false;
+
+    std::thread threadObj;
+    friend void threadFunc_subThread_TrackerClass(subThread_TrackerClass& _refObj) {
+        
+    }
+public:
+
+    subThread_TrackerClass(bool _init=true) {
+        
+        if(_init) this->startThread();
+    }
+    subThread_TrackerClass(const subThread_TrackerClass& _toCopy) {
+        
+    }
+    subThread_TrackerClass(subThread_TrackerClass&& _toMove) {
+        
+    }
+    ~subThread_TrackerClass() {
+        this->stopThread();
+        
+    }
+    subThread_TrackerClass& operator=(const subThread_TrackerClass& _toCopy) {
+        
+    }
+
+    subThread_TrackerClass& move(subThread_TrackerClass&& _toMove) {
+        
+    }
+
+    bool startThread() {
+        if(__isInitialised) throw std::runtime_error("startThread() : the member has already been called.");
+        if(this->__running.load()) throw std::runtime_error("startThread() : thread is already running");
+        
+        this->threadObj = std::thread(threadFunc_subThread_TrackerClass, *this);
+        __isInitialised = true;
+    }
+    bool stopThread() {
+        //if(!__isInitialised) throw std::runtime_error("close() : the object has not been initialised.");
+
+        
+        if(__running.load()) {
+            __running = false;
+            
+            if(this->threadObj.joinable()) this->threadObj.join();
+        }
+        
+    }
+
+    
 };
 
 
