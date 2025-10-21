@@ -11,9 +11,12 @@
 #include <chrono>
 
 #include <stdexcept>
+#include <cassert>
 
 #include <iostream>
 #include <iomanip>
+
+#include "wmpt_useful.hpp"
 
 #ifndef NOMINMAX
 # define NOMINMAX
@@ -37,15 +40,52 @@ enum itemType {
     itemType_default,
     itemType_Mods,
     itemType_Component,
+    itemType_Set
 };
 itemType find_itemType(std::string _typeStr);
+inline std::string getStrFromType_itemType(itemType _type) {
+    switch (_type) {
+    case itemType_default:
+        return "default";
+        break;
+    case itemType_Mods:
+        return "Mods";
+        break;
+    case itemType_Component:
+        return "Component";
+        break;
+    case itemType_Set:
+        return "Set";
+        break;
+    default:
+        assert(false && "std::string getStrFromType_itemType(itemType); itemType is somehow invalid.");
+        break;
+    }
 
+    return "";
+}
 
 struct itemInfo {
     std::string id;
     std::string name;
 
     itemType    type;
+    
+    std::string rawsStr_types;
+
+    std::string getStr() const {
+        std::stringstream ss;
+        ss << "{id:" << this->id << ", name:" << Useful::formatNumber(this->name, 40, 0, "left") << ", type:" << getStrFromType_itemType(this->type) << ", raw_types:"<<this->rawsStr_types;
+
+        return ss.str();
+    }
+    operator std::string() {
+        return getStr();
+    }
+
+    friend auto operator<<(std::ostream &os, itemInfo const& m) -> std::ostream& {
+        os << m.getStr();
+    }
 };
 
 enum trackType {

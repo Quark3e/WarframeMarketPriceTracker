@@ -27,49 +27,57 @@ int main(int argc, char** argv) {
 	Pos2d<int> terminalDim{0, 0};
 	Useful::getTerminalSize(terminalDim.x, terminalDim.y);
 	// Useful::clearScreen();
-	system("clear");
+	system("cls");
 	
 	keyPressHandler KeysObj;
 	KeysObj.updateKeys(getKeyCode());
 
 	TUI_drawBG();
 	
-	while (true) {
+	// while (true) {
 		
-		std::vector<int> pressedKeys = getKeyCode();
-		KeysObj.updateKeys(pressedKeys);
-		auto keyDetails = KeysObj.getAllKeyDetails();
+	// 	std::vector<int> pressedKeys = getKeyCode();
+	// 	KeysObj.updateKeys(pressedKeys);
+	// 	auto keyDetails = KeysObj.getAllKeyDetails();
 		
 
-		std::string printStr = std::string("Reading key: ")+Useful::formatVector(pressedKeys);
-		Useful::ANSI_mvprint(2, 2, Useful::formatNumber(printStr, terminalDim.x-2,0,"left"), false);
-		Useful::ANSI_mvprint(2, 3, Useful::formatNumber(Useful::formatVector(KeysObj.getActiveKeys()),terminalDim.x-2,0,"left"), false);
-		Useful::ANSI_mvprint(2, 4, Useful::formatNumber(KeysObj.getActiveKeys().size(),terminalDim.x-2,0,"left"), false);
+	// 	std::string printStr = std::string("Reading key: ")+Useful::formatVector(pressedKeys);
+	// 	Useful::ANSI_mvprint(2, 2, Useful::formatNumber(printStr, terminalDim.x-2,0,"left"), false);
+	// 	Useful::ANSI_mvprint(2, 3, Useful::formatNumber(Useful::formatVector(KeysObj.getActiveKeys()),terminalDim.x-2,0,"left"), false);
+	// 	Useful::ANSI_mvprint(2, 4, Useful::formatNumber(KeysObj.getActiveKeys().size(),terminalDim.x-2,0,"left"), false);
 
-        Useful::ANSI_mvprint(2, 6, std::string("timeNow:")+Useful::formatNumber(KeysObj.refrTime_now.time_since_epoch().count(),terminalDim.x-2-8,0,"left"), false);
+    //     Useful::ANSI_mvprint(2, 6, std::string("timeNow:")+Useful::formatNumber(KeysObj.refrTime_now.time_since_epoch().count(),terminalDim.x-2-8,0,"left"), false);
 
-		size_t numLinesPrinted = 0;
-		for(int i=0; i<256; i++) {
-			if(!KeysObj.isPressed(i)) continue;
-			Useful::ANSI_mvprint(2, 7+numLinesPrinted, Useful::formatNumber<std::string>(std::string("i:")+Useful::formatNumber(i,3)+" | "+static_cast<std::string>(KeysObj.getKeyDetail(i)),terminalDim.x-2,0,"left"), false);
-			numLinesPrinted++;
-		}
-		for(size_t i=numLinesPrinted; i<256; i++) {
-			Useful::ANSI_mvprint(2, 7+i, std::string(terminalDim.x-2, ' '), false);
-		}
+	// 	size_t numLinesPrinted = 0;
+	// 	for(int i=0; i<256; i++) {
+	// 		if(!KeysObj.isPressed(i)) continue;
+	// 		Useful::ANSI_mvprint(2, 7+numLinesPrinted, Useful::formatNumber<std::string>(std::string("i:")+Useful::formatNumber(i,3)+" | "+static_cast<std::string>(KeysObj.getKeyDetail(i)),terminalDim.x-2,0,"left"), false);
+	// 		numLinesPrinted++;
+	// 	}
+	// 	for(size_t i=numLinesPrinted; i<256; i++) {
+	// 		Useful::ANSI_mvprint(2, 7+i, std::string(terminalDim.x-2, ' '), false);
+	// 	}
 
-		std::cout.flush();
-		// std::this_thread::sleep_for(std::chrono::duration<double>(0.1));
-		if(pressedKeys.size()>0 && 'x'==static_cast<char>(pressedKeys.at(0))) break;
-	}
-	exit(0);
+	// 	std::cout.flush();
+	// 	// std::this_thread::sleep_for(std::chrono::duration<double>(0.1));
+	// 	if(pressedKeys.size()>0 && 'x'==static_cast<char>(pressedKeys.at(0))) break;
+	// }
+	// exit(0);
 
 	/// ---------- Load all items ----------
 	type_AllItems AllItems = LoadAllItems();
 	Useful::ANSI_mvprint(2,3, std::string("Num loaded items: ")+Useful::formatNumber(AllItems.size(), terminalDim.x-2,0,"left"), false);
 
-	std::vector<TrackItem> AllTrackedItems;
+	auto itrItemInfo = AllItems.begin();
+	for(size_t i=0; i<AllItems.size(); i++) {
+		Useful::ANSI_mvprint(2, 4+i, Useful::formatNumber(Useful::formatNumber(i,Useful::formatNumber(AllItems.size(),0,0).size(),0,"right")+" : "+std::string(itrItemInfo->second), terminalDim.x-2, 0, "left"), false);
 
+		std::advance(itrItemInfo, 1);
+	}
+	std::cout.flush();
+
+	std::vector<TrackItem> AllTrackedItems;
+	exit(1);
 
 	// keyPressHandler KeysObj();
 	// keyObj.updateKeys(getKeyCode());

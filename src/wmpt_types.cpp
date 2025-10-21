@@ -4,11 +4,15 @@
 itemType find_itemType(std::string _typeStr) {
     itemType _type = itemType_default;
 
+
     if(_typeStr=="mod") {
         return itemType_Mods;
     }
     else if(_typeStr=="component") {
         return itemType_Component;
+    }
+    else if(_typeStr=="set") {
+        return itemType_Set;
     }
     
     // throw CustomException("no valid type found");

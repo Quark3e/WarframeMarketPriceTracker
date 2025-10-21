@@ -92,18 +92,25 @@ type_AllItems LoadAllItems() {
         exit(1);
     }
     
-
-    for(auto itr=parsedJson["data"].begin(); itr!=parsedJson["data"].end(); ++itr) {
-        std::string _id=itr->at("id"), _key=itr->at("slug");
+    try {
         
-        itemType _type = itemType_default;
-        for(auto tagItr=itr->begin(); tagItr!=itr->end(); ++tagItr) {
-            _type = find_itemType(tagItr.key());
+        for(auto itr=parsedJson["data"].begin(); itr!=parsedJson["data"].end(); ++itr) {
+            std::string _id=itr->at("id"), _key=itr->at("slug");
+            
+            itemType _type = itemType_default;
+            for(size_t tagIdx=0; tagIdx<itr->at("tags").size(); tagIdx++) {
+                _type = find_itemType(itr->at("tags")[tagIdx]);
+                if(_type!=itemType_default) break;
+            }
+    
+            parsedItems[itr->at("slug")] = {_id, _key, _type, itr->at("tags").dump()};
         }
-
-        parsedItems[itr->at("slug")] = {_id, _key, _type};
+        
     }
-
+    catch(const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        exit(1);
+    }
 
     return parsedItems;
 }
