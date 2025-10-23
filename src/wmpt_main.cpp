@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 	}
 	std::cout.flush();
 
-	std::vector<TrackItem> AllTrackedItems;
+	std::vector<PriceTracker::TrackItem> AllTrackedItems;
 	exit(1);
 
 	// keyPressHandler KeysObj();

@@ -20,7 +20,13 @@
 #include <mutex>
 #include <atomic>
 
+#include <functional>
+
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 #include "wmpt_useful.hpp"
+#include "wmpt_variables.hpp"
 
 #ifndef NOMINMAX
 # define NOMINMAX
@@ -92,19 +98,6 @@ struct itemInfo {
     }
 };
 
-enum trackType {
-    trackType_buy,
-    trackType_sell
-};
-struct TrackItem {
-    std::string id;
-    std::string name;
-
-    trackType   typeOfTrack;
-
-    int plat_min;
-    int plat_max;
-};
 
 
 struct __keyPressHandler_keyDetails {
@@ -214,64 +207,221 @@ public:
 };
 
 
+namespace PriceTracker {
+    enum trackType {
+        trackType_buy,
+        trackType_sell
+    };
+    struct TrackItem {
+        std::string id; //item id
+        std::string name;
 
-class subThread_TrackerClass {
-private:
-    std::vector<TrackItem> __ItemsToTrack;
-    std::mutex __mtx_ItemsToTrack;
+        trackType   type;
+
+        int rank_min;
+        int rank_max;
+
+        int plat_min;
+        int plat_max;
+
+        TrackItem(
+            std::string _id, std::string _name, trackType _type, int _rank_min=-1, int _rank_max=-1, int _plat_min=-1, int _plat_max=-1
+        ): id(_id), name(_name), type(_type), rank_min(_rank_min), rank_max(_rank_max), plat_min(_plat_min), plat_max(_plat_max)
+        {}
+    };
+
+    struct ItemOffer {
+        std::string id; //offer id
+        trackType   type;
+        size_t  platinum;
+        size_t  quantity;
+        size_t  rank;
+
+        std::string item_id;
+    };
 
 
-    std::atomic<bool> __running{false};
-    bool __isInitialised = false;
-
-    std::thread threadObj;
-    friend void threadFunc_subThread_TrackerClass(subThread_TrackerClass& _refObj) {
-        
-    }
-public:
-
-    subThread_TrackerClass(bool _init=true) {
-        
-        if(_init) this->startThread();
-    }
-    subThread_TrackerClass(const subThread_TrackerClass& _toCopy) {
-        
-    }
-    subThread_TrackerClass(subThread_TrackerClass&& _toMove) {
-        
-    }
-    ~subThread_TrackerClass() {
-        this->stopThread();
-        
-    }
-    subThread_TrackerClass& operator=(const subThread_TrackerClass& _toCopy) {
-        
-    }
-
-    subThread_TrackerClass& move(subThread_TrackerClass&& _toMove) {
-        
-    }
-
-    bool startThread() {
-        if(__isInitialised) throw std::runtime_error("startThread() : the member has already been called.");
-        if(this->__running.load()) throw std::runtime_error("startThread() : thread is already running");
-        
-        this->threadObj = std::thread(threadFunc_subThread_TrackerClass, *this);
-        __isInitialised = true;
-    }
-    bool stopThread() {
-        //if(!__isInitialised) throw std::runtime_error("close() : the object has not been initialised.");
-
-        
-        if(__running.load()) {
-            __running = false;
-            
-            if(this->threadObj.joinable()) this->threadObj.join();
-        }
-        
-    }
+    /**
+     * Callback invoked when a tracked item is found.
+     *
+     * This callback is called with the tracked item and the corresponding offer details.
+     *
+     * @param tracked The TrackItem identifying the item that was tracked (passed by value).
+     * @param offer   The ItemOffer describing the offer found for the tracked item (passed by value).
+     *
+     * The callback returns void. Implementations should avoid long-running or blocking work
+     * and offload heavy processing if necessary to prevent stalling the caller.
+     */
+    using callbackType_trackedFound = std::function<void(TrackItem, const std::vector<ItemOffer>&)>;
+    /**
+     * @brief Callback invoked when the closest offer for a tracked item is identified or updated.
+     *
+     * This callback type represents a handler that receives the tracked item together with the
+     * corresponding offer considered to be the "closest" (best matching or nearest according to
+     * the tracking logic). It is intended to notify callers about the current nearest offer for
+     * a given tracked entry.
+     *
+     * @param tracked The TrackItem instance associated with the event.
+     * @param offer   The ItemOffer instance representing the closest offer found for the tracked item.
+     *
+     * @note Implementations should be lightweight and may be called whenever the closest offer is
+     *       discovered or changes. The callback is responsible for any further processing, logging,
+     *       UI updates, or persistence related to the provided TrackItem and ItemOffer.
+     * @see TrackItem, ItemOffer
+     */
+    using callbackType_trackedClosestNF = std::function<void(TrackItem, const std::vector<ItemOffer>&)>;
 
     
+
+    class threadClass {
+    private:
+        std::vector<TrackItem> __ItemsToTrack;
+        std::mutex __mtx_access_ItemsToTrack;
+
+        callbackType_trackedFound       __callbackFound;
+        callbackType_trackedClosestNF   __callbackClosestNF;
+        std::mutex __mtx_access_callbackFound;
+        std::mutex __mtx_access_callbackClosestNF;
+        std::atomic<bool> __isDefined__callbackFound{false};
+        std::atomic<bool> __isDefined__callbackClosestNF{false};
+
+        std::atomic<bool>   __running{false};
+        std::mutex          __mtx_pauseThreadIteration;
+        bool                __isInitialised = false;
+
+        std::thread threadObj;
+        friend void threadFunc_threadClass(threadClass& _refObj);
+    public:
+
+        threadClass(bool _init=false) {
+            
+            if(_init) this->startThread();
+        }
+        threadClass(callbackType_trackedFound _callback_trackedFound, bool _init=false): __callbackFound(_callback_trackedFound) {
+            __isDefined__callbackFound = true;
+
+            if(_init) this->startThread();
+        }
+        threadClass(callbackType_trackedFound _callback_trackedFound, callbackType_trackedClosestNF _callback_closestNF, bool _init=false): __callbackFound(_callback_trackedFound), __callbackClosestNF(_callback_closestNF) {
+            __isDefined__callbackFound = true;
+            __isDefined__callbackClosestNF = true;
+
+            if(_init) this->startThread();
+        }
+        threadClass(const threadClass& _toCopy) {
+            __ItemsToTrack  = _toCopy.__ItemsToTrack;
+            if(_toCopy.__isDefined__callbackFound)      __callbackFound     = _toCopy.__callbackFound;
+            if(_toCopy.__isDefined__callbackClosestNF)  __callbackClosestNF = _toCopy.__callbackClosestNF;
+            
+        }
+        threadClass(threadClass&& _toMove) = delete;
+        // {
+        //     if(_toMove.__running) {
+        //         _toMove.__running = false;
+        //         std::unique_lock<std::mutex> u_lck_pauseThread(_toMove.__mtx_pauseThreadIteration, std::defer_lock);
+        //         u_lck_pauseThread.lock();
+        //         threadObj.swap(_toMove.threadObj);
+        //         std::swap(__ItemsToTrack, _toMove.__ItemsToTrack);
+        //         std::swap(__mtx_access_ItemsToTrack, _toMove.__mtx_access_ItemsToTrack);
+        //         if(_toMove.__isDefined__callbackFound)      std::swap(__callbackFound, _toMove.__callbackFound);
+        //         if(_toMove.__isDefined__callbackClosestNF)  std::swap(__callbackClosestNF, _toMove.__callbackClosestNF);
+        //         std::swap(__mtx_access_callbackFound, _toMove.__mtx_access_callbackFound);
+        //         std::swap(__mtx_access_callbackClosestNF, _toMove.__mtx_access_callbackClosestNF);
+        //         u_lck_pauseThread.unlock();
+        //     }
+        // }
+        ~threadClass() {
+            this->stopThread();
+            
+        }
+        threadClass& operator=(const threadClass& _toCopy) {
+            __ItemsToTrack  = _toCopy.__ItemsToTrack;
+            if(_toCopy.__isDefined__callbackFound)      __callbackFound     = _toCopy.__callbackFound;
+            if(_toCopy.__isDefined__callbackClosestNF)  __callbackClosestNF = _toCopy.__callbackClosestNF;
+        }
+        threadClass& move(threadClass&& _toMove) = delete;
+
+        void setCallback_trackedFound(callbackType_trackedFound _newCallback) {
+            std::unique_lock<std::mutex> u_lck(this->__mtx_access_callbackFound);
+            __callbackFound = _newCallback;
+            __isDefined__callbackFound = true;
+        }
+        void setCallback_closestNF(callbackType_trackedClosestNF _newCallback) {
+            std::unique_lock<std::mutex> u_lck(this->__mtx_access_callbackClosestNF);
+            __callbackClosestNF = _newCallback;
+            __isDefined__callbackClosestNF = true;
+        }
+
+        size_t size() const {
+            return __ItemsToTrack.size();
+        }
+        std::vector<TrackItem> getAllItems() const {
+            if(!__isInitialised) throw std::runtime_error("getAllItems() const : class instance has not been initialised.");
+            if(!__running.load()) throw std::runtime_error("getAllItems() const : Tracking sub-thread is not runnng.");
+
+            return __ItemsToTrack;
+        }
+        TrackItem& at(size_t _i) {
+            if(!__isInitialised) throw std::runtime_error("at(size_t) : class instance has not been initialised.");
+            if(!__running.load()) throw std::runtime_error("at(size_t) : Tracking sub-thread is not runnng.");
+
+            std::unique_lock<std::mutex> u_lck(__mtx_access_ItemsToTrack);
+            return __ItemsToTrack.at(_i);
+        }
+        TrackItem at(size_t _i) const {
+            return this->at(_i);
+        }
+        TrackItem& operator[](size_t _i) {
+            std::unique_lock<std::mutex> u_lck(__mtx_access_ItemsToTrack);
+            return __ItemsToTrack[_i];
+        }
+        TrackItem operator[](size_t _i) const {
+            return this->operator[](_i);
+        }
+
+        void add(TrackItem _newItem) {
+            if(!__isInitialised) throw std::runtime_error("add(TrackItem) : class instance has not been initialised.");
+            if(!__running.load()) throw std::runtime_error("add(TrackItem) : Tracking sub-thread is not runnng.");
+
+            std::unique_lock<std::mutex> u_lck(__mtx_access_ItemsToTrack);
+
+            __ItemsToTrack.push_back(_newItem);
+        }
+        void remove(size_t _i) {
+            if(!__isInitialised) throw std::runtime_error("remove(size_t) : class instance has not been initialised.");
+            if(!__running.load()) throw std::runtime_error("remove(size_t) : Tracking sub-thread is not runnng.");
+            if(_i>__ItemsToTrack.size()) throw std::out_of_range("remove(size_t) : _i out of range");
+
+            std::unique_lock<std::mutex> u_lck(__mtx_access_ItemsToTrack);
+
+            auto itr = __ItemsToTrack.begin();
+            std::advance(itr, _i);
+            __ItemsToTrack.erase(itr);
+        }
+
+        void startThread() {
+            if(__isInitialised) throw std::runtime_error("startThread() : the member has already been called.");
+            if(__running.load()) throw std::runtime_error("startThread() : thread is already running");
+            if(!__isDefined__callbackFound) throw std::runtime_error("startThread() : Error. Cannot start the main tracking thread without the callback for signaling when a tracked item is found, is defined.");
+            
+            this->threadObj = std::thread(threadFunc_threadClass, std::ref(*this));
+            __isInitialised = true;
+        }
+        void stopThread() {
+            //if(!__isInitialised) throw std::runtime_error("close() : the object has not been initialised.");
+            
+            if(__running.load()) {
+                __running = false;
+                
+                if(this->threadObj.joinable()) this->threadObj.join();
+            }
+
+        }
+
+        
+    };
+
+
 };
 
 
