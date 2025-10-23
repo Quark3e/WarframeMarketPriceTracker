@@ -212,6 +212,23 @@ namespace PriceTracker {
         trackType_buy,
         trackType_sell
     };
+    enum userStatus {
+        userStatus_offline,
+        userStatus_online,
+        userStatus_ingame
+    };
+    inline userStatus get_userStatus_fromStr(std::string _str) {
+        if(_str.size()==0) throw std::runtime_error("get_userStatus_fromStr(std::string) : invalid _str argument. Cannot be empty string.");
+
+        if(_str=="offline")     return userStatus_offline;
+        else if(_str=="online") return userStatus_online;
+        else if(_str=="ingame") return userStatus_ingame;
+
+        throw std::runtime_error(std::string("get_userStatus_fromStr(std::string) : invalid _str argument. \"")+_str+"\" is invalid.");
+
+        return userStatus_offline;
+    }
+    
     struct TrackItem {
         std::string id; //item id
         std::string name;
@@ -230,14 +247,26 @@ namespace PriceTracker {
         {}
     };
 
+    struct UserInfo {
+        std::string id; //user id
+        std::string ingameName;
+        std::string name_slug;
+        int reputation;
+        userStatus status;
+        std::string date_lastSeen;
+    };
     struct ItemOffer {
         std::string id; //offer id
         trackType   type;
-        size_t  platinum;
-        size_t  quantity;
-        size_t  rank;
+        int     platinum;
+        int     quantity;
+        int     rank;
 
+        std::string date_createdAt;
+        std::string date_updatedAt;
         std::string item_id;
+
+        UserInfo    user;
     };
 
 
@@ -253,23 +282,8 @@ namespace PriceTracker {
      * and offload heavy processing if necessary to prevent stalling the caller.
      */
     using callbackType_trackedFound = std::function<void(TrackItem, const std::vector<ItemOffer>&)>;
-    /**
-     * @brief Callback invoked when the closest offer for a tracked item is identified or updated.
-     *
-     * This callback type represents a handler that receives the tracked item together with the
-     * corresponding offer considered to be the "closest" (best matching or nearest according to
-     * the tracking logic). It is intended to notify callers about the current nearest offer for
-     * a given tracked entry.
-     *
-     * @param tracked The TrackItem instance associated with the event.
-     * @param offer   The ItemOffer instance representing the closest offer found for the tracked item.
-     *
-     * @note Implementations should be lightweight and may be called whenever the closest offer is
-     *       discovered or changes. The callback is responsible for any further processing, logging,
-     *       UI updates, or persistence related to the provided TrackItem and ItemOffer.
-     * @see TrackItem, ItemOffer
-     */
-    using callbackType_trackedClosestNF = std::function<void(TrackItem, const std::vector<ItemOffer>&)>;
+    
+    using callbackType_trackedAllOffers = std::function<void(TrackItem, const std::vector<ItemOffer>&)>;
 
     
 
@@ -279,11 +293,11 @@ namespace PriceTracker {
         std::mutex __mtx_access_ItemsToTrack;
 
         callbackType_trackedFound       __callbackFound;
-        callbackType_trackedClosestNF   __callbackClosestNF;
+        callbackType_trackedAllOffers   __callbackAllOffers;
         std::mutex __mtx_access_callbackFound;
-        std::mutex __mtx_access_callbackClosestNF;
+        std::mutex __mtx_access_callbackAllOffers;
         std::atomic<bool> __isDefined__callbackFound{false};
-        std::atomic<bool> __isDefined__callbackClosestNF{false};
+        std::atomic<bool> __isDefined__callbackAllOffers{false};
 
         std::atomic<bool>   __running{false};
         std::mutex          __mtx_pauseThreadIteration;
@@ -302,16 +316,16 @@ namespace PriceTracker {
 
             if(_init) this->startThread();
         }
-        threadClass(callbackType_trackedFound _callback_trackedFound, callbackType_trackedClosestNF _callback_closestNF, bool _init=false): __callbackFound(_callback_trackedFound), __callbackClosestNF(_callback_closestNF) {
+        threadClass(callbackType_trackedFound _callback_trackedFound, callbackType_trackedAllOffers _callback_AllOffers, bool _init=false): __callbackFound(_callback_trackedFound), __callbackAllOffers(_callback_AllOffers) {
             __isDefined__callbackFound = true;
-            __isDefined__callbackClosestNF = true;
+            __isDefined__callbackAllOffers = true;
 
             if(_init) this->startThread();
         }
         threadClass(const threadClass& _toCopy) {
             __ItemsToTrack  = _toCopy.__ItemsToTrack;
             if(_toCopy.__isDefined__callbackFound)      __callbackFound     = _toCopy.__callbackFound;
-            if(_toCopy.__isDefined__callbackClosestNF)  __callbackClosestNF = _toCopy.__callbackClosestNF;
+            if(_toCopy.__isDefined__callbackAllOffers)  __callbackAllOffers = _toCopy.__callbackAllOffers;
             
         }
         threadClass(threadClass&& _toMove) = delete;
@@ -324,9 +338,9 @@ namespace PriceTracker {
         //         std::swap(__ItemsToTrack, _toMove.__ItemsToTrack);
         //         std::swap(__mtx_access_ItemsToTrack, _toMove.__mtx_access_ItemsToTrack);
         //         if(_toMove.__isDefined__callbackFound)      std::swap(__callbackFound, _toMove.__callbackFound);
-        //         if(_toMove.__isDefined__callbackClosestNF)  std::swap(__callbackClosestNF, _toMove.__callbackClosestNF);
+        //         if(_toMove.__isDefined__callbackAllOffers)  std::swap(__callbackAllOffers, _toMove.__callbackAllOffers);
         //         std::swap(__mtx_access_callbackFound, _toMove.__mtx_access_callbackFound);
-        //         std::swap(__mtx_access_callbackClosestNF, _toMove.__mtx_access_callbackClosestNF);
+        //         std::swap(__mtx_access_callbackAllOffers, _toMove.__mtx_access_callbackAllOffers);
         //         u_lck_pauseThread.unlock();
         //     }
         // }
@@ -337,7 +351,7 @@ namespace PriceTracker {
         threadClass& operator=(const threadClass& _toCopy) {
             __ItemsToTrack  = _toCopy.__ItemsToTrack;
             if(_toCopy.__isDefined__callbackFound)      __callbackFound     = _toCopy.__callbackFound;
-            if(_toCopy.__isDefined__callbackClosestNF)  __callbackClosestNF = _toCopy.__callbackClosestNF;
+            if(_toCopy.__isDefined__callbackAllOffers)  __callbackAllOffers = _toCopy.__callbackAllOffers;
         }
         threadClass& move(threadClass&& _toMove) = delete;
 
@@ -346,10 +360,10 @@ namespace PriceTracker {
             __callbackFound = _newCallback;
             __isDefined__callbackFound = true;
         }
-        void setCallback_closestNF(callbackType_trackedClosestNF _newCallback) {
-            std::unique_lock<std::mutex> u_lck(this->__mtx_access_callbackClosestNF);
-            __callbackClosestNF = _newCallback;
-            __isDefined__callbackClosestNF = true;
+        void setCallback_allOffers(callbackType_trackedAllOffers _newCallback) {
+            std::unique_lock<std::mutex> u_lck(this->__mtx_access_callbackAllOffers);
+            __callbackAllOffers = _newCallback;
+            __isDefined__callbackAllOffers = true;
         }
 
         size_t size() const {
