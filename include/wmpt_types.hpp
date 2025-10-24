@@ -208,6 +208,38 @@ public:
 
 
 namespace PriceTracker {
+    class apiCallTimer {
+    private:
+        const std::chrono::duration<double> rateLimit_minRequestDelay{std::chrono::milliseconds(500)};
+
+        static std::mutex __mtx_callWM;
+        static std::chrono::time_point<std::chrono::steady_clock> __time_prevAPIrequest;
+
+        std::unique_lock<std::mutex> __u_lck_mtxCallWM;
+    public:
+        apiCallTimer():
+            __u_lck_mtxCallWM(std::unique_lock<std::mutex>(__mtx_callWM))
+        {
+            
+        }
+
+        std::string call(const std::string& _url) {
+            __u_lck_mtxCallWM.lock();
+            auto time_now = std::chrono::steady_clock::now();
+            if(rateLimit_minRequestDelay>(time_now-__time_prevAPIrequest)) {
+                std::this_thread::sleep_for(rateLimit_minRequestDelay-(time_now-__time_prevAPIrequest));
+            }
+
+            std::string returStr_json = http_get(_url);
+
+            __time_prevAPIrequest = time_now;
+            __u_lck_mtxCallWM.unlock();
+
+            return returStr_json;
+        }
+
+    };
+
     enum trackType {
         trackType_buy,
         trackType_sell

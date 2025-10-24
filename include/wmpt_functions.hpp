@@ -5,12 +5,15 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 #include <curl/curl.h>
 #include <iostream>
 #include <Windows.h>
 
 #include <Pos2d.hpp>
 #include "wmpt_useful.hpp"
+
+
 
 // Callback function to write data to string
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);

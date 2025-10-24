@@ -83,7 +83,8 @@ type_AllItems LoadAllItems() {
     type_AllItems parsedItems;
 
     try {
-        std::string getStr = http_get(urlString);
+        PriceTracker::apiCallTimer CallTimer;
+        std::string getStr = CallTimer.call(urlString);
 
         parsedJson = json::parse(getStr);
     }
