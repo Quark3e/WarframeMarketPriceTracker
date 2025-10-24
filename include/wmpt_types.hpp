@@ -217,11 +217,7 @@ namespace PriceTracker {
 
         std::unique_lock<std::mutex> __u_lck_mtxCallWM;
     public:
-        apiCallTimer():
-            __u_lck_mtxCallWM(std::unique_lock<std::mutex>(__mtx_callWM))
-        {
-            
-        }
+        apiCallTimer(): __u_lck_mtxCallWM(std::unique_lock<std::mutex>(__mtx_callWM, std::defer_lock)) {}
 
         std::string call(const std::string& _url) {
             __u_lck_mtxCallWM.lock();
