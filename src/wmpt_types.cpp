@@ -21,8 +21,25 @@ itemType find_itemType(std::string _typeStr) {
     return _type;
 }
 
+std::mutex PriceTracker::apiCallTimer::__mtx_callWM;
+std::chrono::time_point<std::chrono::steady_clock> PriceTracker::apiCallTimer::__time_prevAPIrequest;
+std::string PriceTracker::apiCallTimer::call(const std::string& _url) {
+    __u_lck_mtxCallWM.lock();
+    auto time_now = std::chrono::steady_clock::now();
+    if(rateLimit_minRequestDelay>(time_now-__time_prevAPIrequest)) {
+        std::this_thread::sleep_for(rateLimit_minRequestDelay-(time_now-__time_prevAPIrequest));
+    }
+
+    std::string returStr_json = http_get(_url);
+
+    __time_prevAPIrequest = time_now;
+    __u_lck_mtxCallWM.unlock();
+
+    return returStr_json;
+}
+
 void PriceTracker::threadFunc_threadClass(threadClass& _refObj) {
-    std::unique_lock<std::mutex> u_lck_accss_ItemsToTrack(_refObj.__mtx_access_ItemsToTrack,            std::defer_lock);
+    // std::unique_lock<std::mutex> u_lck_accss_ItemsToTrack_update(_refObj.__mtx_access_updateItemsToTrack,std::defer_lock);
     std::unique_lock<std::mutex> u_lck_accss_callbackFound(_refObj.__mtx_access_callbackFound,          std::defer_lock);
     std::unique_lock<std::mutex> u_lck_accss_callbackAllOffers(_refObj.__mtx_access_callbackAllOffers,  std::defer_lock);
     std::unique_lock<std::mutex> u_lck_pauseThreadIteration(_refObj.__mtx_pauseThreadIteration,         std::defer_lock);
@@ -32,6 +49,11 @@ void PriceTracker::threadFunc_threadClass(threadClass& _refObj) {
     assert(_refObj.__isDefined__callbackFound);
 
     while(_refObj.__running) {
+
+        if(_refObj.isChanged_ItemsToTrack.load()) {
+            _refObj.__ItemsToTrack = _refObj.__ItemsToTrack_updates;
+            _refObj.isChanged_ItemsToTrack = false;
+        }
 
         u_lck_pauseThreadIteration.lock();
         for(TrackItem _item : _refObj.__ItemsToTrack) {

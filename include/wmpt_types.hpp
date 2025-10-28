@@ -217,22 +217,11 @@ namespace PriceTracker {
 
         std::unique_lock<std::mutex> __u_lck_mtxCallWM;
     public:
-        apiCallTimer(): __u_lck_mtxCallWM(std::unique_lock<std::mutex>(__mtx_callWM, std::defer_lock)) {}
-
-        std::string call(const std::string& _url) {
-            __u_lck_mtxCallWM.lock();
-            auto time_now = std::chrono::steady_clock::now();
-            if(rateLimit_minRequestDelay>(time_now-__time_prevAPIrequest)) {
-                std::this_thread::sleep_for(rateLimit_minRequestDelay-(time_now-__time_prevAPIrequest));
-            }
-
-            std::string returStr_json = http_get(_url);
-
-            __time_prevAPIrequest = time_now;
-            __u_lck_mtxCallWM.unlock();
-
-            return returStr_json;
+        apiCallTimer() {
+            this->__u_lck_mtxCallWM = std::unique_lock<std::mutex>(__mtx_callWM, std::defer_lock);
         }
+
+        std::string call(const std::string& _url);
 
     };
 
@@ -273,6 +262,20 @@ namespace PriceTracker {
             std::string _id, std::string _name, trackType _type, int _rank_min=-1, int _rank_max=-1, int _plat_min=-1, int _plat_max=-1
         ): id(_id), name(_name), type(_type), rank_min(_rank_min), rank_max(_rank_max), plat_min(_plat_min), plat_max(_plat_max)
         {}
+
+        
+        std::string getTrackID() {
+            std::string id_str = "";
+            std::string delim = ",";
+
+            id_str += name + delim;
+            id_str += "rMin" + std::to_string(rank_min) + delim;
+            id_str += "rMax" + std::to_string(rank_max) + delim;
+            id_str += "pMin" + std::to_string(plat_min) + delim;
+            id_str += "pmax" + std::to_string(plat_max);
+
+            return id_str;
+        }
     };
 
     struct UserInfo {
@@ -318,7 +321,9 @@ namespace PriceTracker {
     class threadClass {
     private:
         std::vector<TrackItem> __ItemsToTrack;
-        std::mutex __mtx_access_ItemsToTrack;
+        std::vector<TrackItem> __ItemsToTrack_updates;
+        std::atomic<bool> isChanged_ItemsToTrack{false};
+        // std::mutex __mtx_access_updateItemsToTrack;
 
         callbackType_trackedFound       __callbackFound;
         callbackType_trackedAllOffers   __callbackAllOffers;
@@ -335,9 +340,8 @@ namespace PriceTracker {
         friend void threadFunc_threadClass(threadClass& _refObj);
     public:
 
-        threadClass(bool _init=false) {
+        threadClass() {
             
-            if(_init) this->startThread();
         }
         threadClass(callbackType_trackedFound _callback_trackedFound, bool _init=false): __callbackFound(_callback_trackedFound) {
             __isDefined__callbackFound = true;
@@ -364,7 +368,7 @@ namespace PriceTracker {
         //         u_lck_pauseThread.lock();
         //         threadObj.swap(_toMove.threadObj);
         //         std::swap(__ItemsToTrack, _toMove.__ItemsToTrack);
-        //         std::swap(__mtx_access_ItemsToTrack, _toMove.__mtx_access_ItemsToTrack);
+        //         std::swap(__mtx_access_updateItemsToTrack, _toMove.__mtx_access_updateItemsToTrack);
         //         if(_toMove.__isDefined__callbackFound)      std::swap(__callbackFound, _toMove.__callbackFound);
         //         if(_toMove.__isDefined__callbackAllOffers)  std::swap(__callbackAllOffers, _toMove.__callbackAllOffers);
         //         std::swap(__mtx_access_callbackFound, _toMove.__mtx_access_callbackFound);
@@ -403,42 +407,58 @@ namespace PriceTracker {
 
             return __ItemsToTrack;
         }
-        TrackItem& at(size_t _i) {
+        // TrackItem& at(size_t _i) {
+        //     if(!__isInitialised) throw std::runtime_error("at(size_t) : class instance has not been initialised.");
+        //     if(!__running.load()) throw std::runtime_error("at(size_t) : Tracking sub-thread is not runnng.");
+        //     std::unique_lock<std::mutex> u_lck(__mtx_pauseThreadIteration);
+        //     return __ItemsToTrack.at(_i);
+        // }
+        TrackItem at(size_t _i) {
             if(!__isInitialised) throw std::runtime_error("at(size_t) : class instance has not been initialised.");
             if(!__running.load()) throw std::runtime_error("at(size_t) : Tracking sub-thread is not runnng.");
 
-            std::unique_lock<std::mutex> u_lck(__mtx_access_ItemsToTrack);
+            std::unique_lock<std::mutex> u_lck(__mtx_pauseThreadIteration);
             return __ItemsToTrack.at(_i);
         }
-        TrackItem at(size_t _i) const {
-            return this->at(_i);
-        }
-        TrackItem& operator[](size_t _i) {
-            std::unique_lock<std::mutex> u_lck(__mtx_access_ItemsToTrack);
+        // TrackItem& operator[](size_t _i) {
+        //     std::unique_lock<std::mutex> u_lck(__mtx_pauseThreadIteration);
+        //     return __ItemsToTrack[_i];
+        // }
+        TrackItem operator[](size_t _i) {
+            std::unique_lock<std::mutex> u_lck(__mtx_pauseThreadIteration);
             return __ItemsToTrack[_i];
-        }
-        TrackItem operator[](size_t _i) const {
-            return this->operator[](_i);
         }
 
         void add(TrackItem _newItem) {
             if(!__isInitialised) throw std::runtime_error("add(TrackItem) : class instance has not been initialised.");
             if(!__running.load()) throw std::runtime_error("add(TrackItem) : Tracking sub-thread is not runnng.");
 
-            std::unique_lock<std::mutex> u_lck(__mtx_access_ItemsToTrack);
+            // std::unique_lock<std::mutex> u_lck(__mtx_pauseThreadIteration);
 
-            __ItemsToTrack.push_back(_newItem);
+            __ItemsToTrack_updates.push_back(_newItem);
+            isChanged_ItemsToTrack = true;
+        }
+        void modify(size_t _i, TrackItem _modified) {
+            if(!__isInitialised) throw std::runtime_error("modify(size_t, TrackItem) : class instance has not been initialised.");
+            if(!__running.load()) throw std::runtime_error("modify(size_t, TrackItem) : Tracking sub-thread is not runnng.");
+            if(_i>__ItemsToTrack_updates.size()) throw std::out_of_range("modify(size_t, TrackItem) : _i out of range");
+
+            // std::unique_lock<std::mutex> u_lck(__mtx_pauseThreadIteration);
+
+            __ItemsToTrack_updates.at(_i) = _modified;
+            isChanged_ItemsToTrack = true;
         }
         void remove(size_t _i) {
             if(!__isInitialised) throw std::runtime_error("remove(size_t) : class instance has not been initialised.");
             if(!__running.load()) throw std::runtime_error("remove(size_t) : Tracking sub-thread is not runnng.");
-            if(_i>__ItemsToTrack.size()) throw std::out_of_range("remove(size_t) : _i out of range");
+            if(_i>__ItemsToTrack_updates.size()) throw std::out_of_range("remove(size_t) : _i out of range");
 
-            std::unique_lock<std::mutex> u_lck(__mtx_access_ItemsToTrack);
+            // std::unique_lock<std::mutex> u_lck(__mtx_pauseThreadIteration);
 
-            auto itr = __ItemsToTrack.begin();
+            auto itr = __ItemsToTrack_updates.begin();
             std::advance(itr, _i);
-            __ItemsToTrack.erase(itr);
+            __ItemsToTrack_updates.erase(itr);
+            isChanged_ItemsToTrack = true;
         }
 
         void startThread() {

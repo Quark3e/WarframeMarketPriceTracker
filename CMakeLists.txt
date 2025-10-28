@@ -12,6 +12,7 @@ set(FILES_SOURCES
     "${CMAKE_SOURCE_DIR}/src/wmpt_main.cpp"
     "${CMAKE_SOURCE_DIR}/src/wmpt_types.cpp"
     "${CMAKE_SOURCE_DIR}/src/wmpt_variables.cpp"
+    "${CMAKE_SOURCE_DIR}/src/wmpt_tui.cpp"
 )
 
 add_executable(${PROJECT_NAME}
