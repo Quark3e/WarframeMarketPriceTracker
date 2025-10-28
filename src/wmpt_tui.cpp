@@ -95,3 +95,13 @@ void print_help() {
 }
 
 
+PriceTracker::callbackType_trackedAllOffers TUINC::callbackFunc_trackedAllOffers = [](PriceTracker::TrackItem _item, std::vector<PriceTracker::ItemOffer> _offers) {
+    std::unique_lock<std::mutex> u_lck__TrackingItemOffer(__mtx_access_TrackingItemsOffers);
+    TrackingItemsOffers[_item.getTrackID()] = {_item, _offers};
+};
+PriceTracker::callbackType_trackedFound TUINC::callbackFunc_offersFound = [](PriceTracker::TrackItem _item, std::vector<PriceTracker::ItemOffer> _offers) {
+    std::unique_lock<std::mutex> u_lck__TrackingItemOffer(__mtx_access_TrackingItemsOffers);
+    TrackingItemsOffers[_item.getTrackID()] = {_item, _offers};
+
+
+};
