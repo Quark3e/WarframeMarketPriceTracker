@@ -51,48 +51,35 @@ public:
     }
 };
 
-enum Results {
-    ToastClicked,             // user clicked on the toast
-    ToastDismissed,           // user dismissed the toast
-    ToastTimeOut,             // toast timed out
-    ToastHided,               // application hid the toast
-    ToastNotActivated,        // toast was not activated
-    ToastFailed,              // toast failed
-    SystemNotSupported,       // system does not support toasts
-    UnhandledOption,          // unhandled option
-    MultipleTextNotSupported, // multiple texts were provided
-    InitializationFailure,    // toast notification manager initialization failure
-    ToastNotLaunched          // toast could not be launched
-};
 
-#define COMMAND_ACTION     L"--action"
-#define COMMAND_AUMI       L"--aumi"
-#define COMMAND_APPNAME    L"--appname"
-#define COMMAND_APPID      L"--appid"
-#define COMMAND_EXPIREMS   L"--expirems"
-#define COMMAND_TEXT       L"--text"
-#define COMMAND_HELP       L"--help"
-#define COMMAND_IMAGE      L"--image"
-#define COMMAND_SHORTCUT   L"--only-create-shortcut"
-#define COMMAND_AUDIOSTATE L"--audio-state"
-#define COMMAND_ATTRIBUTE  L"--attribute"
-#define COMMAND_INPUT      L"--input"
+// #define COMMAND_ACTION     L"--action"
+// #define COMMAND_AUMI       L"--aumi"
+// #define COMMAND_APPNAME    L"--appname"
+// #define COMMAND_APPID      L"--appid"
+// #define COMMAND_EXPIREMS   L"--expirems"
+// #define COMMAND_TEXT       L"--text"
+// #define COMMAND_HELP       L"--help"
+// #define COMMAND_IMAGE      L"--image"
+// #define COMMAND_SHORTCUT   L"--only-create-shortcut"
+// #define COMMAND_AUDIOSTATE L"--audio-state"
+// #define COMMAND_ATTRIBUTE  L"--attribute"
+// #define COMMAND_INPUT      L"--input"
 
-void print_help() {
-    std::wcout << "WinToast Console Example [OPTIONS]" << std::endl;
-    std::wcout << "\t" << COMMAND_ACTION << L" : Set the actions in buttons" << std::endl;
-    std::wcout << "\t" << COMMAND_AUMI << L" : Set the App User Model Id" << std::endl;
-    std::wcout << "\t" << COMMAND_APPNAME << L" : Set the default appname" << std::endl;
-    std::wcout << "\t" << COMMAND_APPID << L" : Set the App Id" << std::endl;
-    std::wcout << "\t" << COMMAND_EXPIREMS << L" : Set the default expiration time" << std::endl;
-    std::wcout << "\t" << COMMAND_TEXT << L" : Set the text for the notifications" << std::endl;
-    std::wcout << "\t" << COMMAND_IMAGE << L" : set the image path" << std::endl;
-    std::wcout << "\t" << COMMAND_ATTRIBUTE << L" : set the attribute for the notification" << std::endl;
-    std::wcout << "\t" << COMMAND_SHORTCUT << L" : create the shortcut for the app" << std::endl;
-    std::wcout << "\t" << COMMAND_AUDIOSTATE << L" : set the audio state: Default = 0, Silent = 1, Loop = 2" << std::endl;
-    std::wcout << "\t" << COMMAND_INPUT << L" : add an input to the toast" << std::endl;
-    std::wcout << "\t" << COMMAND_HELP << L" : Print the help description" << std::endl;
-}
+// void print_help() {
+//     std::wcout << "WinToast Console Example [OPTIONS]" << std::endl;
+//     std::wcout << "\t" << COMMAND_ACTION << L" : Set the actions in buttons" << std::endl;
+//     std::wcout << "\t" << COMMAND_AUMI << L" : Set the App User Model Id" << std::endl;
+//     std::wcout << "\t" << COMMAND_APPNAME << L" : Set the default appname" << std::endl;
+//     std::wcout << "\t" << COMMAND_APPID << L" : Set the App Id" << std::endl;
+//     std::wcout << "\t" << COMMAND_EXPIREMS << L" : Set the default expiration time" << std::endl;
+//     std::wcout << "\t" << COMMAND_TEXT << L" : Set the text for the notifications" << std::endl;
+//     std::wcout << "\t" << COMMAND_IMAGE << L" : set the image path" << std::endl;
+//     std::wcout << "\t" << COMMAND_ATTRIBUTE << L" : set the attribute for the notification" << std::endl;
+//     std::wcout << "\t" << COMMAND_SHORTCUT << L" : create the shortcut for the app" << std::endl;
+//     std::wcout << "\t" << COMMAND_AUDIOSTATE << L" : set the audio state: Default = 0, Silent = 1, Loop = 2" << std::endl;
+//     std::wcout << "\t" << COMMAND_INPUT << L" : add an input to the toast" << std::endl;
+//     std::wcout << "\t" << COMMAND_HELP << L" : Print the help description" << std::endl;
+// }
 
 
 PriceTracker::callbackType_trackedAllOffers TUINC::callbackFunc_trackedAllOffers = [](PriceTracker::TrackItem _item, std::vector<PriceTracker::ItemOffer> _offers) {
@@ -102,6 +89,72 @@ PriceTracker::callbackType_trackedAllOffers TUINC::callbackFunc_trackedAllOffers
 PriceTracker::callbackType_trackedFound TUINC::callbackFunc_offersFound = [](PriceTracker::TrackItem _item, std::vector<PriceTracker::ItemOffer> _offers) {
     std::unique_lock<std::mutex> u_lck__TrackingItemOffer(__mtx_access_TrackingItemsOffers);
     TrackingItemsOffers[_item.getTrackID()] = {_item, _offers};
+    
 
+    std::wstring appName        = L"Console WinToast Example";
+    std::wstring appUserModelID = L"WinToast Console Example";
+    std::wstring text           = L"";
+    std::wstring imagePath      = L"";
+    std::wstring attribute      = L"default";
+    
+    // std::vector<std::wstring> actions;
+    INT64 expiration = 0;
+    // bool input       = false;
 
+    // bool onlyCreateShortcut                   = false;
+    WinToastTemplate::AudioOption audioOption = WinToastTemplate::AudioOption::Default;
+
+    
+    WinToast::instance()->setAppName(appName);
+    WinToast::instance()->setAppUserModelId(appUserModelID);
+
+    // if (onlyCreateShortcut) {
+    //     if (!imagePath.empty() || !text.empty() || actions.size() > 0 || expiration) {
+    //         std::wcerr << L"--only-create-shortcut does not accept images/text/actions/expiration" << std::endl;
+    //         // return 9;
+    //     }
+    //     enum WinToast::ShortcutResult result = WinToast::instance()->createShortcut();
+    //     // return result ? 16 + result : 0;
+    // }
+
+    // if (text.empty()) {
+    //     text = L"Hello, world!";
+    // }
+
+    if (!WinToast::instance()->initialize()) {
+        std::wcerr << L"Error, your system in not compatible!" << std::endl;
+        // return Results::InitializationFailure;
+    }
+
+    WinToastTemplate templ(!imagePath.empty() ? WinToastTemplate::ImageAndText02 : WinToastTemplate::Text02);
+    templ.setTextField(text, WinToastTemplate::FirstLine);
+    templ.setAudioOption(audioOption);
+    templ.setAttributionText(attribute);
+    templ.setImagePath(imagePath);
+    // if (input) {
+    //     templ.addInput();
+    // }
+
+    // for (auto const& action : actions) {
+    //     templ.addAction(action);
+    // }
+
+    if (expiration) {
+        templ.setExpiration(expiration);
+    }
+
+    if (WinToast::instance()->showToast(templ, new CustomHandler()) < 0) {
+        std::wcerr << L"Could not launch your toast notification!";
+        // return Results::ToastFailed;
+    }
+
+    // Give the handler a chance for 15 seconds (or the expiration plus 1 second)
+    Sleep(expiration ? (DWORD) expiration + 1000 : 15000);
 };
+
+TUINC::Results TUINC::init() {
+    if(!WinToast::isCompatible()) {
+        std::wcerr << L"Error, your system in not supported!" << std::endl;
+        return Results::SystemNotSupported;
+    }
+}

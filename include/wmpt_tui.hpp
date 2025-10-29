@@ -19,6 +19,19 @@
 
 namespace TUINC {
     
+    enum Results {
+        ToastClicked,             // user clicked on the toast
+        ToastDismissed,           // user dismissed the toast
+        ToastTimeOut,             // toast timed out
+        ToastHided,               // application hid the toast
+        ToastNotActivated,        // toast was not activated
+        ToastFailed,              // toast failed
+        SystemNotSupported,       // system does not support toasts
+        UnhandledOption,          // unhandled option
+        MultipleTextNotSupported, // multiple texts were provided
+        InitializationFailure,    // toast notification manager initialization failure
+        ToastNotLaunched          // toast could not be launched
+    };
 
     std::string __str_printBuffer;
     // std::string __str_printBuffer_trackedOffers;
@@ -44,10 +57,7 @@ namespace TUINC {
     extern PriceTracker::callbackType_trackedAllOffers callbackFunc_trackedAllOffers;
     extern PriceTracker::callbackType_trackedFound callbackFunc_offersFound;
 
-    bool init() {
-        // callbackFunc_trackedAlloffers = [](PriceTracker::TrackItem _item, std::vector<PriceTracker::ItemOffer> _offers) {
-        // };
-    }
+    Results init();
 
 
 };
