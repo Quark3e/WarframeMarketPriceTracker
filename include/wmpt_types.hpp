@@ -358,6 +358,8 @@ namespace PriceTracker {
             __ItemsToTrack  = _toCopy.__ItemsToTrack;
             if(_toCopy.__isDefined__callbackFound)      __callbackFound     = _toCopy.__callbackFound;
             if(_toCopy.__isDefined__callbackAllOffers)  __callbackAllOffers = _toCopy.__callbackAllOffers;
+            __isDefined__callbackFound      = _toCopy.__isDefined__callbackFound;
+            __isDefined__callbackAllOffers  = _toCopy.__isDefined__callbackAllOffers;
             
         }
         threadClass(threadClass&& _toMove) = delete;

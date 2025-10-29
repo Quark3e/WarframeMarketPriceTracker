@@ -23,6 +23,7 @@ itemType find_itemType(std::string _typeStr) {
 
 std::mutex PriceTracker::apiCallTimer::__mtx_callWM;
 std::chrono::time_point<std::chrono::steady_clock> PriceTracker::apiCallTimer::__time_prevAPIrequest;
+
 std::string PriceTracker::apiCallTimer::call(const std::string& _url) {
     __u_lck_mtxCallWM.lock();
     auto time_now = std::chrono::steady_clock::now();

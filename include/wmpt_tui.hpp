@@ -18,7 +18,7 @@
 
 
 namespace TUINC {
-    
+
     enum Results {
         ToastClicked,             // user clicked on the toast
         ToastDismissed,           // user dismissed the toast
@@ -57,8 +57,13 @@ namespace TUINC {
     extern PriceTracker::callbackType_trackedAllOffers callbackFunc_trackedAllOffers;
     extern PriceTracker::callbackType_trackedFound callbackFunc_offersFound;
 
-    Results init();
 
+    extern PriceTracker::threadClass threadObj_PriceTracker;
+
+
+    Results Initialise();
+
+    int Drive();
 
 };
 

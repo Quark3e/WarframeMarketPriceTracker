@@ -52,36 +52,6 @@ public:
 };
 
 
-// #define COMMAND_ACTION     L"--action"
-// #define COMMAND_AUMI       L"--aumi"
-// #define COMMAND_APPNAME    L"--appname"
-// #define COMMAND_APPID      L"--appid"
-// #define COMMAND_EXPIREMS   L"--expirems"
-// #define COMMAND_TEXT       L"--text"
-// #define COMMAND_HELP       L"--help"
-// #define COMMAND_IMAGE      L"--image"
-// #define COMMAND_SHORTCUT   L"--only-create-shortcut"
-// #define COMMAND_AUDIOSTATE L"--audio-state"
-// #define COMMAND_ATTRIBUTE  L"--attribute"
-// #define COMMAND_INPUT      L"--input"
-
-// void print_help() {
-//     std::wcout << "WinToast Console Example [OPTIONS]" << std::endl;
-//     std::wcout << "\t" << COMMAND_ACTION << L" : Set the actions in buttons" << std::endl;
-//     std::wcout << "\t" << COMMAND_AUMI << L" : Set the App User Model Id" << std::endl;
-//     std::wcout << "\t" << COMMAND_APPNAME << L" : Set the default appname" << std::endl;
-//     std::wcout << "\t" << COMMAND_APPID << L" : Set the App Id" << std::endl;
-//     std::wcout << "\t" << COMMAND_EXPIREMS << L" : Set the default expiration time" << std::endl;
-//     std::wcout << "\t" << COMMAND_TEXT << L" : Set the text for the notifications" << std::endl;
-//     std::wcout << "\t" << COMMAND_IMAGE << L" : set the image path" << std::endl;
-//     std::wcout << "\t" << COMMAND_ATTRIBUTE << L" : set the attribute for the notification" << std::endl;
-//     std::wcout << "\t" << COMMAND_SHORTCUT << L" : create the shortcut for the app" << std::endl;
-//     std::wcout << "\t" << COMMAND_AUDIOSTATE << L" : set the audio state: Default = 0, Silent = 1, Loop = 2" << std::endl;
-//     std::wcout << "\t" << COMMAND_INPUT << L" : add an input to the toast" << std::endl;
-//     std::wcout << "\t" << COMMAND_HELP << L" : Print the help description" << std::endl;
-// }
-
-
 PriceTracker::callbackType_trackedAllOffers TUINC::callbackFunc_trackedAllOffers = [](PriceTracker::TrackItem _item, std::vector<PriceTracker::ItemOffer> _offers) {
     std::unique_lock<std::mutex> u_lck__TrackingItemOffer(__mtx_access_TrackingItemsOffers);
     TrackingItemsOffers[_item.getTrackID()] = {_item, _offers};
@@ -93,7 +63,7 @@ PriceTracker::callbackType_trackedFound TUINC::callbackFunc_offersFound = [](Pri
 
     std::wstring appName        = L"Console WinToast Example";
     std::wstring appUserModelID = L"WinToast Console Example";
-    std::wstring text           = L"";
+    std::wstring text           = L"text test";
     std::wstring imagePath      = L"";
     std::wstring attribute      = L"default";
     
@@ -104,7 +74,7 @@ PriceTracker::callbackType_trackedFound TUINC::callbackFunc_offersFound = [](Pri
     // bool onlyCreateShortcut                   = false;
     WinToastTemplate::AudioOption audioOption = WinToastTemplate::AudioOption::Default;
 
-    
+
     WinToast::instance()->setAppName(appName);
     WinToast::instance()->setAppUserModelId(appUserModelID);
 
@@ -116,10 +86,7 @@ PriceTracker::callbackType_trackedFound TUINC::callbackFunc_offersFound = [](Pri
     //     enum WinToast::ShortcutResult result = WinToast::instance()->createShortcut();
     //     // return result ? 16 + result : 0;
     // }
-
-    // if (text.empty()) {
-    //     text = L"Hello, world!";
-    // }
+    // if (text.empty()) {text = L"Hello, world!";}
 
     if (!WinToast::instance()->initialize()) {
         std::wcerr << L"Error, your system in not compatible!" << std::endl;
@@ -131,17 +98,10 @@ PriceTracker::callbackType_trackedFound TUINC::callbackFunc_offersFound = [](Pri
     templ.setAudioOption(audioOption);
     templ.setAttributionText(attribute);
     templ.setImagePath(imagePath);
-    // if (input) {
-    //     templ.addInput();
-    // }
+    // if (input) {templ.addInput();}
+    // for (auto const& action : actions) {templ.addAction(action);}
 
-    // for (auto const& action : actions) {
-    //     templ.addAction(action);
-    // }
-
-    if (expiration) {
-        templ.setExpiration(expiration);
-    }
+    if (expiration) {templ.setExpiration(expiration);}
 
     if (WinToast::instance()->showToast(templ, new CustomHandler()) < 0) {
         std::wcerr << L"Could not launch your toast notification!";
@@ -152,9 +112,28 @@ PriceTracker::callbackType_trackedFound TUINC::callbackFunc_offersFound = [](Pri
     Sleep(expiration ? (DWORD) expiration + 1000 : 15000);
 };
 
-TUINC::Results TUINC::init() {
+
+PriceTracker::threadClass TUINC::threadObj_PriceTracker{callbackFunc_offersFound, callbackFunc_trackedAllOffers, false};
+
+
+TUINC::Results TUINC::Initialise() {
     if(!WinToast::isCompatible()) {
         std::wcerr << L"Error, your system in not supported!" << std::endl;
         return Results::SystemNotSupported;
     }
+    try {
+        threadObj_priceTracker.startThread();
+    }
+    catch(const std::exception &e) {
+        std::cerr << "Failed to start PriceTracker threadClass object with exception\"" << e.what() << "\"\n";
+        exit(1);
+    }
+
 }
+
+int TUINC::Drive() {
+
+
+}
+
+
