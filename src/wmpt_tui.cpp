@@ -122,17 +122,18 @@ TUINC::Results TUINC::Initialise() {
         return Results::SystemNotSupported;
     }
     try {
-        threadObj_priceTracker.startThread();
+        threadObj_PriceTracker.startThread();
     }
     catch(const std::exception &e) {
-        std::cerr << "Failed to start PriceTracker threadClass object with exception\"" << e.what() << "\"\n";
-        exit(1);
+        std::wcerr << L"Failed to start PriceTracker threadClass object with exception\"" << e.what() << "\"\n";
+        return Results::ThreadInitialisationFailure;
     }
 
+    return Results::Success;
 }
 
 int TUINC::Drive() {
-
+    
 
 }
 

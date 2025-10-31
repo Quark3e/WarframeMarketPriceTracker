@@ -20,6 +20,8 @@
 namespace TUINC {
 
     enum Results {
+        Success,
+        ThreadInitialisationFailure,
         ToastClicked,             // user clicked on the toast
         ToastDismissed,           // user dismissed the toast
         ToastTimeOut,             // toast timed out
@@ -29,8 +31,9 @@ namespace TUINC {
         SystemNotSupported,       // system does not support toasts
         UnhandledOption,          // unhandled option
         MultipleTextNotSupported, // multiple texts were provided
-        InitializationFailure,    // toast notification manager initialization failure
+        InitialisationFailure,    // toast notification manager initialization failure
         ToastNotLaunched          // toast could not be launched
+        
     };
 
     std::string __str_printBuffer;

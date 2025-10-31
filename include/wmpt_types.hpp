@@ -263,7 +263,7 @@ namespace PriceTracker {
         ): id(_id), name(_name), type(_type), rank_min(_rank_min), rank_max(_rank_max), plat_min(_plat_min), plat_max(_plat_max)
         {}
 
-        
+
         std::string getTrackID() {
             std::string id_str = "";
             std::string delim = ",";
@@ -358,8 +358,8 @@ namespace PriceTracker {
             __ItemsToTrack  = _toCopy.__ItemsToTrack;
             if(_toCopy.__isDefined__callbackFound)      __callbackFound     = _toCopy.__callbackFound;
             if(_toCopy.__isDefined__callbackAllOffers)  __callbackAllOffers = _toCopy.__callbackAllOffers;
-            __isDefined__callbackFound      = _toCopy.__isDefined__callbackFound;
-            __isDefined__callbackAllOffers  = _toCopy.__isDefined__callbackAllOffers;
+            __isDefined__callbackFound      = _toCopy.__isDefined__callbackFound.load();
+            __isDefined__callbackAllOffers  = _toCopy.__isDefined__callbackAllOffers.load();
             
         }
         threadClass(threadClass&& _toMove) = delete;
