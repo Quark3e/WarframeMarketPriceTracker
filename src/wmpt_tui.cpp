@@ -1,5 +1,7 @@
 
 #include "wmpt_tui.hpp"
+#include "wmpt_types.hpp"
+#include "wmpt_functions.hpp"
 
 #include "wintoastlib.h"
 #include <string>
@@ -133,8 +135,152 @@ TUINC::Results TUINC::Initialise() {
 }
 
 int TUINC::Drive() {
-    
+    std::vector<int> _keys;
+
+
 
 }
 
 
+namespace TUINC {
+
+    
+    __cell::__cell(bool _nullCell): __nullCell(_nullCell) {}
+    __cell::__cell(std::string _label): label(_label), __isDefined_label(true) {}
+    __cell::__cell(std::string _label, Pos2d<int> _pos): label(_label), pos(_pos), __isDefined_label(true), __isDefined_pos(true) {
+
+    }
+    __cell::__cell(std::string _label, __type_cellFunc _function): label(_label), function(_function), __isDefined_label(true), __isDefined_function(true) {
+
+    }
+    __cell::__cell(std::string _label, __type_cellFunc _function, Pos2d<int> _pos): label(_label), function(_function), pos(_pos), __isDefined_label(true), __isDefined_function(true), __isDefined_pos(true) {
+
+    }
+
+    __cell::__cell(const __cell& _toCopy) {
+        if(_toCopy.__isDefined_label) {
+            this->label = _toCopy.label;
+        }
+        if(_toCopy.__isDefined_function) {
+            this->function = _toCopy.function;
+        }
+        if(_toCopy.__isDefined_pos) {
+            this->pos = _toCopy.pos;
+        }
+        
+        __isDefined_label = _toCopy.__isDefined_label;
+        __isDefined_function = _toCopy.__isDefined_function;
+        __isDefined_pos = _toCopy.__isDefined_pos;
+
+        __nullCell = _toCopy.__nullCell;
+    }
+    __cell::__cell(__cell&& _toMove) {
+        if(_toMove.__isDefined_label) {
+            std::swap(this->label, _toMove.label);
+        }
+        if(_toMove.__isDefined_function) {
+            std::swap(this->function, _toMove.function);
+        }
+        if(_toMove.__isDefined_pos) {
+            std::swap(this->pos, _toMove.pos);
+        }
+
+        __isDefined_label = _toMove.__isDefined_label;
+        __isDefined_function = _toMove.__isDefined_function;
+        __isDefined_pos = _toMove.__isDefined_pos;
+
+        __nullCell = _toMove.__nullCell;
+    }
+    __cell::~__cell() {
+
+    }
+    __cell& __cell::operator=(const __cell& _toCopy) {
+        if(_toCopy.__isDefined_label) {
+            this->label = _toCopy.label;
+        }
+        if(_toCopy.__isDefined_function) {
+            this->function = _toCopy.function;
+        }
+        if(_toCopy.__isDefined_pos) {
+            this->pos = _toCopy.pos;
+        }
+        
+        __isDefined_label = _toCopy.__isDefined_label;
+        __isDefined_function = _toCopy.__isDefined_function;
+        __isDefined_pos = _toCopy.__isDefined_pos;
+
+        __nullCell = _toCopy.__nullCell;
+
+        return *this;
+    }
+    __cell& __cell::operator=(__cell&& _toMove) {
+        if(_toMove.__isDefined_label) {
+            std::swap(this->label, _toMove.label);
+        }
+        if(_toMove.__isDefined_function) {
+            std::swap(this->function, _toMove.function);
+        }
+        if(_toMove.__isDefined_pos) {
+            std::swap(this->pos, _toMove.pos);
+        }
+
+        __isDefined_label = _toMove.__isDefined_label;
+        __isDefined_function = _toMove.__isDefined_function;
+        __isDefined_pos = _toMove.__isDefined_pos;
+
+        __nullCell = _toMove.__nullCell;
+
+        return *this;
+    }
+
+
+    __table::__table(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
+        for(auto itr=_matrixInput.begin(); itr!=_matrixInput.end(); ++itr) {
+            __tableOfCells.push_back(*itr);
+        }
+        Pos2d<int> tableDim(0, __tableOfCells.size());
+        Pos2d<int> tempPos(0, 0);
+        for(auto itr_y=__tableOfCells.begin(); itr_y!=__tableOfCells.end(); ++itr_y) {
+            tempPos.x = 0;
+            for(auto itr=itr_y->begin(); itr!=itr_y->end(); ++(itr)) {
+                if(itr->__nullCell) {
+
+                }
+                else {
+                    if(itr->__isDefined_pos) {
+
+                    }
+                    else {
+                        itr->pos = tempPos;
+                        
+                    }
+
+                }
+
+                tempPos.x++;
+            }
+            tempPos.y++;
+        }
+    }
+
+    __table::__table() {
+
+    }
+    __table::__table(const __table& _toCopy) {
+
+    }
+    __table::__table(__table&& _toMove) {
+        
+    }
+    __table::~__table() {
+
+    }
+    __table& __table::operator=(const __table& _toCopy) {
+
+    }
+    __table& __table::operator=(__table&& _toMove) {
+
+    }
+
+    
+};

@@ -129,7 +129,7 @@ private:
 
 public:
     std::chrono::steady_clock::time_point refrTime_now;
-    std::chrono::duration<double> pressTypeDifrDecayDur_seconds = std::chrono::duration<double>(0.5);
+    std::chrono::duration<double> pressTypeDifrDecayDur_seconds = std::chrono::duration<double>(0.3);
 
     keyPressHandler() {
         for(size_t i=0; i<256; i++) {
@@ -204,6 +204,17 @@ public:
         return this->__pressed_keys.at(_key).isPressed;
     }
 
+};
+
+enum keyASCII {
+    ENTER       = 13,
+    SHIFT       = 16,
+    CTRL        = 17,
+    ESC         = 27,
+    ARROW_LEFT  = 37,
+    ARROW_UP    = 38,
+    ARROW_RIGHT = 39,
+    ARROW_DOWN  = 40,
 };
 
 

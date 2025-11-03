@@ -8,10 +8,11 @@
 
 #include <string>
 
+#include <initializer_list>
 #include <vector>
+#include <functional>
 #include <map>
 
-#include "wmpt_types.hpp"
 #include "wmpt_useful.hpp"
 #include <Pos2d.hpp>
 
@@ -67,6 +68,59 @@ namespace TUINC {
     Results Initialise();
 
     int Drive();
+
+    
+    struct  __cell;
+    class   __table;
+
+    using __type_cellFunc = std::function<void(__table&)>;
+
+    struct  __cell {
+        std::string     label;
+        __type_cellFunc function;
+        Pos2d<int>      pos;
+        
+        bool    __nullCell  = false;
+
+        bool    __isDefined_label   = false;
+        bool    __isDefined_function= false;
+        bool    __isDefined_pos     = false;
+
+        __cell(bool _nullCell=true);
+        __cell(std::string _label);
+        __cell(std::string _label, Pos2d<int> _pos);
+        __cell(std::string _label, __type_cellFunc _function);
+        __cell(std::string _label, __type_cellFunc _function, Pos2d<int> _pos);
+
+        __cell(const __cell& _toCopy);
+        __cell(__cell&& _toMove);
+        ~__cell();
+        __cell& operator=(const __cell& _toCopy);
+        __cell& operator=(__cell&& _toMove);
+    };
+
+    class   __table {
+        private:
+        /**
+         * access index: [row][column] ([y][x])
+         *  {
+         *      {[0, 0], [0, 1], [0, 2]},
+         *      {[1, 0], [1, 1], [1, 2]}
+         *  }
+         */
+        std::vector<std::vector<__cell>> __tableOfCells;
+
+        public:
+        __table(std::initializer_list<std::initializer_list<__cell>> _matrixInput);
+
+        __table();
+        __table(const __table& _toCopy);
+        __table(__table&& _toMove);
+        ~__table();
+        __table& operator=(const __table& _toCopy);
+        __table& operator=(__table&& _toMove);
+
+    };
 
 };
 
