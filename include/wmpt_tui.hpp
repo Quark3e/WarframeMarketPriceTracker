@@ -75,6 +75,7 @@ namespace TUINC {
 
     using __type_cellFunc = std::function<void(__table&)>;
 
+
     struct  __cell {
         std::string     label;
         __type_cellFunc function;
@@ -99,6 +100,27 @@ namespace TUINC {
         __cell& operator=(__cell&& _toMove);
     };
 
+    class   __table_row {
+        private:
+        std::vector<__cell>& __tableCellRow;
+
+        public:
+        __table_row(std::vector<__cell>& _table_row);
+        __table_row() = delete;
+        __table_row(const __table_row& _toCopy) = delete;
+        __table_row(__table_row&& _toMove);
+        ~__table_row();
+        __table_row& operator=(const __table_row& _toCopy) = delete;
+        __table_row& operator=(__table_row&& _toMove);
+
+        __cell& operator[](size_t _i);
+        __cell  operator[](size_t _i) const;
+        __cell& at(size_t _i);
+        __cell  at(size_t _i) const;
+
+        size_t size();
+
+    };
     class   __table {
         private:
         /**
@@ -120,6 +142,23 @@ namespace TUINC {
         __table& operator=(const __table& _toCopy);
         __table& operator=(__table&& _toMove);
 
+        __table_row& operator[](size_t _i);
+        // __table_row  operator[](size_t _i) const;
+        __table_row& at(size_t _i);
+        // __table_row  at(size_t _i) const;
+
+        __cell& getCell(size_t _x, size_t _y);
+
+        size_t rows();
+        size_t columns();
+        size_t size();
+
+        int addCell(size_t _x, size_t _y);
+        int addCell(Pos2d<int> _pos);
+        int moveCell(size_t _current_x, size_t _current_y, size_t _new_x, size_t _new_y);
+        int moveCell(Pos2d<int> _current_pos, Posd<int> _new_pos);
+        int eraseCell(size_t _x, size_t _y);
+        int eraseCell(Pos2d<int> _pos);
     };
 
 };

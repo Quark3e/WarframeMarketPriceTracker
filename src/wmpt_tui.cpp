@@ -234,15 +234,51 @@ namespace TUINC {
     }
 
 
+    __table_row::__table_row(std::vector<__cell>& _table_row): __tableCellRow(_table_row) {
+
+    }
+    // __table_row::__table_row(const __table_row& _toCopy) {
+    //     __tableCellRow =_toCopy.__tableCellRow;
+    // }
+    __table_row::__table_row(__table_row&& _toMove) {
+        std::swap(__tableCellRow, _toMove.__tableCellRow);
+    }
+    __table_row::~__table_row() {
+
+    }
+    //__table_row& __table_row::operator=(const __table_row& _toCopy) {
+    //}
+    __table_row& __table_row::operator=(__table_row&& _toMove) {
+        std::swap(__tableCellRow, _toMove.__tableCellRow);
+    }
+
+    __cell& __table_row::operator[](size_t _i) {
+        return __tableCellRow[_i];
+    }
+    __cell  __table_row::operator[](size_t _i) const {
+        return __tableCellRow[_i];
+    }
+    __cell& __table_row::at(size_t _i) {
+        return __tableCellRow.at(_i);
+    }
+    __cell __table_row::at(size_t _i) const  {
+        return __tableCellRow.at(_i);
+    }
+
+    size_t __table_row::size() {
+        return __tableCellRow.size();
+    }
+
+
     __table::__table(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
         for(auto itr=_matrixInput.begin(); itr!=_matrixInput.end(); ++itr) {
             __tableOfCells.push_back(*itr);
         }
         Pos2d<int> tableDim(0, __tableOfCells.size());
         Pos2d<int> tempPos(0, 0);
-        for(auto itr_y=__tableOfCells.begin(); itr_y!=__tableOfCells.end(); ++itr_y) {
+        for(auto& itr_y=__tableOfCells.begin(); itr_y!=__tableOfCells.end(); ++itr_y) {
             tempPos.x = 0;
-            for(auto itr=itr_y->begin(); itr!=itr_y->end(); ++(itr)) {
+            for(auto& itr=itr_y->begin(); itr!=itr_y->end(); ++(itr)) {
                 if(itr->__nullCell) {
 
                 }
@@ -252,7 +288,7 @@ namespace TUINC {
                     }
                     else {
                         itr->pos = tempPos;
-                        
+                        itr->__isDefined_pos = true;
                     }
 
                 }
