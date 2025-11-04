@@ -132,6 +132,8 @@ namespace TUINC {
          */
         std::vector<std::vector<__cell>> __tableOfCells;
 
+        
+
         public:
         __table(std::initializer_list<std::initializer_list<__cell>> _matrixInput);
 
@@ -148,6 +150,9 @@ namespace TUINC {
         // __table_row  at(size_t _i) const;
 
         __cell& getCell(size_t _x, size_t _y);
+        __cell  getCell(size_t _x, size_t _y) const;
+        __cell& getCell(Pos2d<int> _pos);
+        __cell  getCell(Pos2d<int> _pos) const;
 
         size_t rows();
         size_t columns();
@@ -156,7 +161,7 @@ namespace TUINC {
         int addCell(size_t _x, size_t _y);
         int addCell(Pos2d<int> _pos);
         int moveCell(size_t _current_x, size_t _current_y, size_t _new_x, size_t _new_y);
-        int moveCell(Pos2d<int> _current_pos, Posd<int> _new_pos);
+        int moveCell(Pos2d<int> _current_pos, Pos2d<int> _new_pos);
         int eraseCell(size_t _x, size_t _y);
         int eraseCell(Pos2d<int> _pos);
     };

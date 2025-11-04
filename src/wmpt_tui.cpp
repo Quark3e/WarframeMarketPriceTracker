@@ -240,8 +240,8 @@ namespace TUINC {
     // __table_row::__table_row(const __table_row& _toCopy) {
     //     __tableCellRow =_toCopy.__tableCellRow;
     // }
-    __table_row::__table_row(__table_row&& _toMove) {
-        std::swap(__tableCellRow, _toMove.__tableCellRow);
+    __table_row::__table_row(__table_row&& _toMove): __tableCellRow(_toMove.__tableCellRow) {
+
     }
     __table_row::~__table_row() {
 
@@ -302,19 +302,72 @@ namespace TUINC {
     __table::__table() {
 
     }
-    __table::__table(const __table& _toCopy) {
+    __table::__table(const __table& _toCopy): __tableOfCells(_toCopy.__tableOfCells) {
 
     }
-    __table::__table(__table&& _toMove) {
+    __table::__table(__table&& _toMove): __tableOfCells(_toMove.__tableOfCells) {
         
     }
     __table::~__table() {
 
     }
     __table& __table::operator=(const __table& _toCopy) {
-
+        __tableOfCells = _toCopy.__tableOfCells;
     }
     __table& __table::operator=(__table&& _toMove) {
+        std::swap(__tableOfCells, _toMove.__tableOfCells);
+
+    }
+
+    
+    __table_row& __table::operator[](size_t _i) {
+        return __table_row(__tableOfCells[_i]);
+    }
+    // __table_row  operator[](size_t _i) const;
+    __table_row& __table::at(size_t _i) {
+        return __table_row(__tableOfCells.at(_i));
+    }
+    // __table_row  at(size_t _i) const;
+
+    __cell& __table::getCell(size_t _x, size_t _y) {
+        return __tableOfCells.at(_x).at(_y);
+    }
+    __cell __table::getCell(size_t _x, size_t _y) const {
+        return getCell(_x, _y);
+    }
+    __cell& __table::getCell(Pos2d<int> _pos) {
+        return getCell(_pos.x, _pos.y);
+    }
+    __cell __table::getCell(Pos2d<int> _pos) const {
+        return getCell(_pos);
+    }
+
+    size_t __table::rows() {
+        return __tableOfCells.size();
+    }
+    size_t __table::columns() {
+        return (__tableOfCells.size()>0? __tableOfCells.at(0).size() : 0);
+    }
+    size_t __table::size() {
+
+    }
+
+    int __table::addCell(size_t _x, size_t _y) {
+
+    }
+    int __table::addCell(Pos2d<int> _pos) {
+
+    }
+    int __table::moveCell(size_t _current_x, size_t _current_y, size_t _new_x, size_t _new_y) {
+
+    }
+    int __table::moveCell(Pos2d<int> _current_pos, Pos2d<int> _new_pos) {
+
+    }
+    int __table::eraseCell(size_t _x, size_t _y) {
+
+    }
+    int __table::eraseCell(Pos2d<int> _pos) {
 
     }
 
