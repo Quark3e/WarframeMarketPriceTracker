@@ -132,7 +132,7 @@ namespace TUINC {
          */
         std::vector<std::vector<__cell>> __tableOfCells;
 
-        
+
 
         public:
         __table(std::initializer_list<std::initializer_list<__cell>> _matrixInput);

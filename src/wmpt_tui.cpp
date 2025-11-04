@@ -271,6 +271,32 @@ namespace TUINC {
 
 
     __table::__table(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
+        Pos2d<int> limMatrix(0, 0);
+        limMatrix.y = _matrixInput.size();
+        for(auto itr_y=_matrixInput.begin(); itr_y!=_matrixInput.end(); ++itr_y) {
+            if(limMatrix.x < itr_y->size()) limMatrix.x = itr_y->size();
+        }
+
+        std::vector<bool> limDefined{false, false};
+        for(auto itr_y=_matrixInput.begin(); itr_y!=_matrixInput.end(); ++itr_y) {
+            for(auto itr_x=itr_y->begin(); itr_x!=itr_y->end(); ++(itr_x)) {
+                if(itr_x->__isDefined_pos) {
+                    if(itr_x->pos.x > limMatrix.x || !limDefined.at(0)) {
+                        limMatrix.x = itr_x->pos.x;
+                        limDefined.at(0) = true;
+                    }
+                    if(itr_x->pos.y > limMatrix.y || !limDefined.at(1)) {
+                        limMatrix.y = itr_x->pos.y;
+                        limDefined.at(1) = true;
+                    }
+                }
+            }
+        }
+        __tableOfCells = std::vector<std::vector<__cell>>(limMatrix.y, std::vector<__cell>(limMatrix.x));
+
+
+        //-------
+
         for(auto itr=_matrixInput.begin(); itr!=_matrixInput.end(); ++itr) {
             __tableOfCells.push_back(*itr);
         }
