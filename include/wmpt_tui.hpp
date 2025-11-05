@@ -87,6 +87,7 @@ namespace TUINC {
         bool    __isDefined_function= false;
         bool    __isDefined_pos     = false;
 
+        __cell() = delete; // ?
         __cell(bool _nullCell=true);
         __cell(std::string _label);
         __cell(std::string _label, Pos2d<int> _pos);
@@ -143,7 +144,8 @@ namespace TUINC {
         ~__table();
         __table& operator=(const __table& _toCopy);
         __table& operator=(__table&& _toMove);
-
+        __table& operator=(std::initializer_list<std::initializer_list<__cell>> _matrixInput);
+        
         __table_row& operator[](size_t _i);
         // __table_row  operator[](size_t _i) const;
         __table_row& at(size_t _i);
@@ -157,6 +159,9 @@ namespace TUINC {
         size_t rows();
         size_t columns();
         size_t size();
+        
+        std::vector<__cell> continuous();
+        std::vector<__cell> nonNull_continuous();
 
         int addCell(size_t _x, size_t _y);
         int addCell(Pos2d<int> _pos);

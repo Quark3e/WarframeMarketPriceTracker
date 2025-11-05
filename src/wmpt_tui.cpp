@@ -271,58 +271,8 @@ namespace TUINC {
 
 
     __table::__table(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
-        Pos2d<int> limMatrix(0, 0);
-        limMatrix.y = _matrixInput.size();
-        for(auto itr_y=_matrixInput.begin(); itr_y!=_matrixInput.end(); ++itr_y) {
-            if(limMatrix.x < itr_y->size()) limMatrix.x = itr_y->size();
-        }
-
-        std::vector<bool> limDefined{false, false};
-        for(auto itr_y=_matrixInput.begin(); itr_y!=_matrixInput.end(); ++itr_y) {
-            for(auto itr_x=itr_y->begin(); itr_x!=itr_y->end(); ++(itr_x)) {
-                if(itr_x->__isDefined_pos) {
-                    if(itr_x->pos.x > limMatrix.x || !limDefined.at(0)) {
-                        limMatrix.x = itr_x->pos.x;
-                        limDefined.at(0) = true;
-                    }
-                    if(itr_x->pos.y > limMatrix.y || !limDefined.at(1)) {
-                        limMatrix.y = itr_x->pos.y;
-                        limDefined.at(1) = true;
-                    }
-                }
-            }
-        }
-        __tableOfCells = std::vector<std::vector<__cell>>(limMatrix.y, std::vector<__cell>(limMatrix.x));
-
-
-        //-------
-
-        for(auto itr=_matrixInput.begin(); itr!=_matrixInput.end(); ++itr) {
-            __tableOfCells.push_back(*itr);
-        }
-        Pos2d<int> tableDim(0, __tableOfCells.size());
-        Pos2d<int> tempPos(0, 0);
-        for(auto& itr_y=__tableOfCells.begin(); itr_y!=__tableOfCells.end(); ++itr_y) {
-            tempPos.x = 0;
-            for(auto& itr=itr_y->begin(); itr!=itr_y->end(); ++(itr)) {
-                if(itr->__nullCell) {
-
-                }
-                else {
-                    if(itr->__isDefined_pos) {
-
-                    }
-                    else {
-                        itr->pos = tempPos;
-                        itr->__isDefined_pos = true;
-                    }
-
-                }
-
-                tempPos.x++;
-            }
-            tempPos.y++;
-        }
+        this->operator=(_matrixInpit);
+        
     }
 
     __table::__table() {
@@ -344,7 +294,68 @@ namespace TUINC {
         std::swap(__tableOfCells, _toMove.__tableOfCells);
 
     }
+    __table& __table::operator=(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
+        Pos2d<int>  limMatrix_min(0, 0);
+        Pos2d<int>  limMatrix_max(0, 0);
+        Pos2d<bool> limDefined_min(false, false);
+        Pos2d<bool> limDefined_max(false, false);
+        limMatrix.y = _matrixInput.size();
+        Pos2d<int>  limCountedDim(0, _matrixInput.size());
+        for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
+            for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
+                if(itr_cell->__isDefined_pos) {
+                    if(itr_cell->pos.x > limMatrix_max.x || !limDefined_max.x) {
+                        limMatrix_max.x = itr_cell.x;
+                        limDefined_max.x = true;
+                    }
+                    else if(itr_cell->pos.x < limMatrix_min.x || !limDefined_min.x) {
+                        limMatrix_min.x = itr_cell.x;
+                        limDefined_min.x = true;
+                    }
+                    if(itr_cell->pos.y > limMatrix_max.y || !limDefined_max.y) {
+                        limMatrix_max.y = itr_cell.y;
+                        limDefined_max.y = true;
+                    }
+                    else if(itr_cell->pos.y < limMatrix_min.y || !limDefined_min.y) {
+                        limMatrix_min.y = itr_cell.y;
+                        limDefined_min.y = true;
+                    }
 
+                }
+            }
+            if(itr_row->size() > lineCountedDim.x) lineCountedDim.x = itr_row->size();
+        }
+        if(limDefined_min.x) assert(limDefined_max.x && " how the fuck is minimum defined but not maximum for x");
+        if(limDefined_min.y) assert(limDefined_max.y && " how the fuck is minimum defined but not maximum for y");
+        if(limCountedDim.x > limMatrix_max.x-limMatrix_min.x) { //the defined limits are smaller than the existing number of cells for a row
+            limMatrix_max.x = lineCountedDim.x;
+        }
+        if(limCountedDim.y > limMatrix_max.y-limMatrix_min.y) {
+            limMatrix_max.y = lineCountedDim.y;
+        }
+
+        __tableOfCells = std::vector<std::vector<__cell>>(limMatrix_max.y-limMatrix_min.y, std::vector<__cell>(limMatrix_max.x-limMatrix_min.x, {true}));
+        
+        Pos2d<int> lineCountedPos = limMatrix_min;
+        for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
+            lineCounterPos.x = limMatrix_min.x;
+            for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
+                if(!itr_cell->__nullCell) {
+                    if(itr_cell->__isDefined_pos) __tableOfCells[itr_cell->pos.y][itr_cell->pos.x] = *itr_cell;
+                    else {
+                        if(__tableOfCells[lineCountedPos.y][lineCountedPos.x].__nullCell) {
+                            __tableOfCells[itr_cell->pos.y][itr_cell->pos.x] = *itr_cell;
+                        }
+                    }
+                }
+            }
+            lineCountedPos.y++;
+        }
+
+        
+        
+    }
+    
     
     __table_row& __table::operator[](size_t _i) {
         return __table_row(__tableOfCells[_i]);
@@ -376,6 +387,26 @@ namespace TUINC {
     }
     size_t __table::size() {
 
+    }
+    std::vector<__cell> __table::continuous() {
+        std::vector<__cell> returVec;
+        for(auto row : __tableOfCells) {
+            for(auto cell : row) {
+                returVec.push_back(cell);
+            }
+        }
+        
+        return returVec;
+    }
+    std::vector<__cell> __table::nonNull_continuous() {
+        std::vector<__cell> returVec;
+        for(auto row : __tableOfCells) {
+            for(auto cell : row) {
+                if(!cell.__nullCell) returVec.push_back(cell);
+            }
+        }
+        
+        return returVec;
     }
 
     int __table::addCell(size_t _x, size_t _y) {
