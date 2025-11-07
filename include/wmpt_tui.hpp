@@ -134,6 +134,19 @@ namespace TUINC {
         std::vector<std::vector<__cell>> __tableOfCells;
 
 
+        // --- graphics settings ---
+        
+        /// @brief Maximum character-size dimensions of table.
+        Pos2d<size_t> __dimSize_table{std::string::npos, std::string::npos};
+
+        /// @brief Maximum character-size widths of each column
+        std::vector<size_t> __size_columnWidth;
+        /// @brief Maximum character-size heights of each row
+        std::vector<size_t> __size_rowHeight;
+
+        void __update__string_table();
+        /// @brief Final string containing the table in full
+        std::string __string_table{""};
 
         public:
         __table(std::initializer_list<std::initializer_list<__cell>> _matrixInput);
@@ -151,10 +164,10 @@ namespace TUINC {
         __table_row& at(size_t _i);
         // __table_row  at(size_t _i) const;
 
-        __cell& getCell(size_t _x, size_t _y);
-        __cell  getCell(size_t _x, size_t _y) const;
-        __cell& getCell(Pos2d<int> _pos);
-        __cell  getCell(Pos2d<int> _pos) const;
+        __cell& cell(size_t _x, size_t _y);
+        __cell  cell(size_t _x, size_t _y) const;
+        __cell& cell(Pos2d<int> _pos);
+        __cell  cell(Pos2d<int> _pos) const;
 
         size_t rows();
         size_t columns();
@@ -163,12 +176,16 @@ namespace TUINC {
         std::vector<__cell> continuous();
         std::vector<__cell> nonNull_continuous();
 
-        int addCell(size_t _x, size_t _y);
-        int addCell(Pos2d<int> _pos);
-        int moveCell(size_t _current_x, size_t _current_y, size_t _new_x, size_t _new_y);
-        int moveCell(Pos2d<int> _current_pos, Pos2d<int> _new_pos);
-        int eraseCell(size_t _x, size_t _y);
-        int eraseCell(Pos2d<int> _pos);
+        // int addCell(size_t _x, size_t _y);
+        // int addCell(Pos2d<int> _pos);
+        // int moveCell(size_t _current_x, size_t _current_y, size_t _new_x, size_t _new_y);
+        // int moveCell(Pos2d<int> _current_pos, Pos2d<int> _new_pos);
+        // int eraseCell(size_t _x, size_t _y);
+        // int eraseCell(Pos2d<int> _pos);
+
+        Results call(size_t _x, size_t _y);
+        Results call(Pos2d<int> _pos);
+
     };
 
 };

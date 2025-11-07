@@ -270,8 +270,12 @@ namespace TUINC {
     }
 
 
+    void __table::__update__string_table() {
+        
+    }
+
     __table::__table(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
-        this->operator=(_matrixInpit);
+        this->operator=(_matrixInput);
         
     }
 
@@ -299,25 +303,24 @@ namespace TUINC {
         Pos2d<int>  limMatrix_max(0, 0);
         Pos2d<bool> limDefined_min(false, false);
         Pos2d<bool> limDefined_max(false, false);
-        limMatrix.y = _matrixInput.size();
-        Pos2d<int>  limCountedDim(0, _matrixInput.size());
+        Pos2d<int>  lineCountedDim(0, _matrixInput.size());
         for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
             for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
                 if(itr_cell->__isDefined_pos) {
                     if(itr_cell->pos.x > limMatrix_max.x || !limDefined_max.x) {
-                        limMatrix_max.x = itr_cell.x;
+                        limMatrix_max.x = itr_cell->pos.x;
                         limDefined_max.x = true;
                     }
                     else if(itr_cell->pos.x < limMatrix_min.x || !limDefined_min.x) {
-                        limMatrix_min.x = itr_cell.x;
+                        limMatrix_min.x = itr_cell->pos.x;
                         limDefined_min.x = true;
                     }
                     if(itr_cell->pos.y > limMatrix_max.y || !limDefined_max.y) {
-                        limMatrix_max.y = itr_cell.y;
+                        limMatrix_max.y = itr_cell->pos.y;
                         limDefined_max.y = true;
                     }
                     else if(itr_cell->pos.y < limMatrix_min.y || !limDefined_min.y) {
-                        limMatrix_min.y = itr_cell.y;
+                        limMatrix_min.y = itr_cell->pos.y;
                         limDefined_min.y = true;
                     }
 
@@ -327,10 +330,10 @@ namespace TUINC {
         }
         if(limDefined_min.x) assert(limDefined_max.x && " how the fuck is minimum defined but not maximum for x");
         if(limDefined_min.y) assert(limDefined_max.y && " how the fuck is minimum defined but not maximum for y");
-        if(limCountedDim.x > limMatrix_max.x-limMatrix_min.x) { //the defined limits are smaller than the existing number of cells for a row
+        if(lineCountedDim.x > limMatrix_max.x-limMatrix_min.x) { //the defined limits are smaller than the existing number of cells for a row
             limMatrix_max.x = lineCountedDim.x;
         }
-        if(limCountedDim.y > limMatrix_max.y-limMatrix_min.y) {
+        if(lineCountedDim.y > limMatrix_max.y-limMatrix_min.y) {
             limMatrix_max.y = lineCountedDim.y;
         }
 
@@ -338,7 +341,7 @@ namespace TUINC {
         
         Pos2d<int> lineCountedPos = limMatrix_min;
         for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
-            lineCounterPos.x = limMatrix_min.x;
+            lineCountedPos.x = limMatrix_min.x;
             for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
                 if(!itr_cell->__nullCell) {
                     if(itr_cell->__isDefined_pos) __tableOfCells[itr_cell->pos.y][itr_cell->pos.x] = *itr_cell;
@@ -354,6 +357,7 @@ namespace TUINC {
 
         
         
+        return *this;
     }
     
     
@@ -366,17 +370,17 @@ namespace TUINC {
     }
     // __table_row  at(size_t _i) const;
 
-    __cell& __table::getCell(size_t _x, size_t _y) {
+    __cell& __table::cell(size_t _x, size_t _y) {
         return __tableOfCells.at(_x).at(_y);
     }
-    __cell __table::getCell(size_t _x, size_t _y) const {
-        return getCell(_x, _y);
+    __cell __table::cell(size_t _x, size_t _y) const {
+        return cell(_x, _y);
     }
-    __cell& __table::getCell(Pos2d<int> _pos) {
-        return getCell(_pos.x, _pos.y);
+    __cell& __table::cell(Pos2d<int> _pos) {
+        return cell(_pos.x, _pos.y);
     }
-    __cell __table::getCell(Pos2d<int> _pos) const {
-        return getCell(_pos);
+    __cell __table::cell(Pos2d<int> _pos) const {
+        return cell(_pos);
     }
 
     size_t __table::rows() {
@@ -386,7 +390,7 @@ namespace TUINC {
         return (__tableOfCells.size()>0? __tableOfCells.at(0).size() : 0);
     }
     size_t __table::size() {
-
+        return __tableOfCells.size() * (__tableOfCells.size()>0? __tableOfCells.at(0).size() : 0);
     }
     std::vector<__cell> __table::continuous() {
         std::vector<__cell> returVec;
@@ -409,24 +413,38 @@ namespace TUINC {
         return returVec;
     }
 
-    int __table::addCell(size_t _x, size_t _y) {
+    // int __table::addCell(size_t _x, size_t _y) {
+    // }
+    // int __table::addCell(Pos2d<int> _pos) {
+    // }
+    // int __table::moveCell(size_t _current_x, size_t _current_y, size_t _new_x, size_t _new_y) {
+    // }
+    // int __table::moveCell(Pos2d<int> _current_pos, Pos2d<int> _new_pos) {
+    // }
+    // int __table::eraseCell(size_t _x, size_t _y) {
+    // }
+    // int __table::eraseCell(Pos2d<int> _pos) {
+    // }
 
+    Results __table::call(size_t _x, size_t _y) {
+        if(__tableOfCells.size()==0)        throw std::runtime_error("call(size_t, size_t) : table is empty of cells.");
+        if(_y>=__tableOfCells.size())       throw std::runtime_error("call(size_t, size_t) : _y argument is bigger than existing rows in table.");
+        if(_x>=__tableOfCells.at(0).size()) throw std::runtime_error("call(size_t, size_t) : _x argument is bigger than existing columns in table.");
+        if(__tableOfCells.at(_y).at(_x).__nullCell) throw std::runtime_error(std::string("call(size_t, size_t) : cell at row:")+std::to_string(_y)+" column:"+std::to_string(_x)+" is a nullCell.");
+
+        __tableOfCells.at(_y).at(_x).function(*this);
+
+        return Results::Success;
     }
-    int __table::addCell(Pos2d<int> _pos) {
+    Results __table::call(Pos2d<int> _pos) {
+        if(__tableOfCells.size()==0)            throw std::runtime_error("call(Pos2d<int>) : table is empty of cells.");
+        if(_pos.y>=__tableOfCells.size())       throw std::runtime_error("call(Pos2d<int>) : y value is bigger than existing rows in table.");
+        if(_pos.x>=__tableOfCells.at(0).size()) throw std::runtime_error("call(Pos2d<int>) : x value is bigger than existing columns in table.");
+        if(__tableOfCells.at(_pos.y).at(_pos.x).__nullCell) throw std::runtime_error(std::string("call(Pos2d<int>) : cell at row:")+std::to_string(_pos.y)+" column:"+std::to_string(_pos.x)+" is a nullCell.");
 
-    }
-    int __table::moveCell(size_t _current_x, size_t _current_y, size_t _new_x, size_t _new_y) {
+        __tableOfCells.at(_pos.y).at(_pos.x).function(*this);
 
-    }
-    int __table::moveCell(Pos2d<int> _current_pos, Pos2d<int> _new_pos) {
-
-    }
-    int __table::eraseCell(size_t _x, size_t _y) {
-
-    }
-    int __table::eraseCell(Pos2d<int> _pos) {
-
+        return Results::Success;
     }
 
-    
 };
