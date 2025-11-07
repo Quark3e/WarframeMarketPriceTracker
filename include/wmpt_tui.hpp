@@ -122,6 +122,7 @@ namespace TUINC {
         size_t size();
 
     };
+    
     class   __table {
         private:
         /**
@@ -147,6 +148,7 @@ namespace TUINC {
         void __update__string_table();
         /// @brief Final string containing the table in full
         std::string __string_table{""};
+        
 
         public:
         __table(std::initializer_list<std::initializer_list<__cell>> _matrixInput);
