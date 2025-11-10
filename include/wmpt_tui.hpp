@@ -126,6 +126,7 @@ namespace TUINC {
         prio_cellWidth,
         prio_fitMenuWidth
     };
+    
     class   __table {
         private:
         /**
