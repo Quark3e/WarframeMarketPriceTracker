@@ -145,10 +145,11 @@ namespace TUINC {
         Pos2d<size_t> __dimSize_table{std::string::npos, std::string::npos};
 
         /// @brief Maximum character-size widths of each column
-        std::vector<size_t> __size_columnWidth;
+        std::vector<size_t> __size_columnWidths;
         /// @brief Maximum character-size heights of each row
-        std::vector<size_t> __size_rowHeight;
+        std::vector<size_t> __size_rowHeights;
 
+        
         void __update__string_table();
         /// @brief Final string containing the table in full
         std::string __string_table{""};

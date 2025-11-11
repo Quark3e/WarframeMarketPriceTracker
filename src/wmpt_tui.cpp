@@ -272,6 +272,16 @@ namespace TUINC {
 
     void __table::__update__string_table() {
         
+        std::vector<size_t> __size_columns;
+        std::vector<size_t> __size_row;
+        
+        for(size_t _x=0; _x<__tableOfCells.at(0).size(); _x++) {
+            for(size_t _y=0; _y<__tableOfCells.size(); _y++) {
+                
+            }
+        }
+        
+        
     }
 
     __table::__table(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
