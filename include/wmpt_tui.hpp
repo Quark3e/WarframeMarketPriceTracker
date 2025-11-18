@@ -76,29 +76,65 @@ namespace TUINC {
     using __type_cellFunc = std::function<void(__table&)>;
 
 
-    struct  __cell {
-        std::string     label;
-        __type_cellFunc function;
-        Pos2d<int>      pos;
+    enum enum_cellType {
+        null,
+        text,
+        function
+    };
+
+    struct __cell_singleTempHolder {
+
+    };
+
+    struct __cellType_null {
+
+    };
+    struct __cellType_text {
+
+        std::string text;
+
+        bool rule_followDelimiter{true};
+    };
+    struct __cellType_function {
+        std::string text;
         
-        bool    __nullCell  = false;
+        __type_cellFunc function;
 
-        bool    __isDefined_label   = false;
-        bool    __isDefined_function= false;
-        bool    __isDefined_pos     = false;
+    };
 
-        __cell() = delete; // ?
-        __cell(bool _nullCell=true);
-        __cell(std::string _label);
-        __cell(std::string _label, Pos2d<int> _pos);
-        __cell(std::string _label, __type_cellFunc _function);
-        __cell(std::string _label, __type_cellFunc _function, Pos2d<int> _pos);
+    class  __cell {
+        private:
+        // std::string     label;
+        // __type_cellFunc function;
+        // Pos2d<int>      pos;
+        // bool    __nullCell  = false;
+        // bool    __isDefined_label   = false;
+        // bool    __isDefined_function= false;
+        // bool    __isDefined_pos     = false;
+        
+        std::string     __table_ID;
+        enum_cellType   __cellType{null};
+        Pos2d<int>      __pos;
 
-        __cell(const __cell& _toCopy);
-        __cell(__cell&& _toMove);
-        ~__cell();
-        __cell& operator=(const __cell& _toCopy);
-        __cell& operator=(__cell&& _toMove);
+        __cellType_null     __cellContent_null;
+        __cellType_text     __cellContent_text;
+        __cellType_function __cellContent_function;
+
+        public:
+
+        
+
+        // __cell() = delete; // ?
+        // __cell(bool _nullCell=true);
+        // __cell(std::string _label);
+        // __cell(std::string _label, Pos2d<int> _pos);
+        // __cell(std::string _label, __type_cellFunc _function);
+        // __cell(std::string _label, __type_cellFunc _function, Pos2d<int> _pos);
+        // __cell(const __cell& _toCopy);
+        // __cell(__cell&& _toMove);
+        // ~__cell();
+        // __cell& operator=(const __cell& _toCopy);
+        // __cell& operator=(__cell&& _toMove);
     };
 
     class   __table_row {
@@ -156,6 +192,9 @@ namespace TUINC {
 
         style_columnWidthPriority widthPrio{style_columnWidthPriority::prio_fitMenuWidth};
 
+
+        std::string delimiter_columns{"|"};
+        std::string delimiter_rows{" "};
 
         public:
         __table(std::initializer_list<std::initializer_list<__cell>> _matrixInput);

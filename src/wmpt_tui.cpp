@@ -145,93 +145,80 @@ int TUINC::Drive() {
 namespace TUINC {
 
     
-    __cell::__cell(bool _nullCell): __nullCell(_nullCell) {}
-    __cell::__cell(std::string _label): label(_label), __isDefined_label(true) {}
-    __cell::__cell(std::string _label, Pos2d<int> _pos): label(_label), pos(_pos), __isDefined_label(true), __isDefined_pos(true) {
+    // __cell::__cell(bool _nullCell): __nullCell(_nullCell) {}
+    // __cell::__cell(std::string _label): label(_label), __isDefined_label(true) {}
+    // __cell::__cell(std::string _label, Pos2d<int> _pos): label(_label), pos(_pos), __isDefined_label(true), __isDefined_pos(true) {
+    // }
+    // __cell::__cell(std::string _label, __type_cellFunc _function): label(_label), function(_function), __isDefined_label(true), __isDefined_function(true) {
+    // }
+    // __cell::__cell(std::string _label, __type_cellFunc _function, Pos2d<int> _pos): label(_label), function(_function), pos(_pos), __isDefined_label(true), __isDefined_function(true), __isDefined_pos(true) {
+    // }
+    // __cell::__cell(const __cell& _toCopy) {
+    //     if(_toCopy.__isDefined_label) {
+    //         this->label = _toCopy.label;
+    //     }
+    //     if(_toCopy.__isDefined_function) {
+    //         this->function = _toCopy.function;
+    //     }
+    //     if(_toCopy.__isDefined_pos) {
+    //         this->pos = _toCopy.pos;
+    //     }
+    //     __isDefined_label = _toCopy.__isDefined_label;
+    //     __isDefined_function = _toCopy.__isDefined_function;
+    //     __isDefined_pos = _toCopy.__isDefined_pos;
+    //     __nullCell = _toCopy.__nullCell;
+    // }
+    // __cell::__cell(__cell&& _toMove) {
+    //     if(_toMove.__isDefined_label) {
+    //         std::swap(this->label, _toMove.label);
+    //     }
+    //     if(_toMove.__isDefined_function) {
+    //         std::swap(this->function, _toMove.function);
+    //     }
+    //     if(_toMove.__isDefined_pos) {
+    //         std::swap(this->pos, _toMove.pos);
+    //     }
+    //     __isDefined_label = _toMove.__isDefined_label;
+    //     __isDefined_function = _toMove.__isDefined_function;
+    //     __isDefined_pos = _toMove.__isDefined_pos;
+    //     __nullCell = _toMove.__nullCell;
+    // }
+    // __cell::~__cell() {
+    // }
+    // __cell& __cell::operator=(const __cell& _toCopy) {
+    //     if(_toCopy.__isDefined_label) {
+    //         this->label = _toCopy.label;
+    //     }
+    //     if(_toCopy.__isDefined_function) {
+    //         this->function = _toCopy.function;
+    //     }
+    //     if(_toCopy.__isDefined_pos) {
+    //         this->pos = _toCopy.pos;
+    //     }
+    //     __isDefined_label = _toCopy.__isDefined_label;
+    //     __isDefined_function = _toCopy.__isDefined_function;
+    //     __isDefined_pos = _toCopy.__isDefined_pos;
+    //     __nullCell = _toCopy.__nullCell;
+    //     return *this;
+    // }
+    // __cell& __cell::operator=(__cell&& _toMove) {
+    //     if(_toMove.__isDefined_label) {
+    //         std::swap(this->label, _toMove.label);
+    //     }
+    //     if(_toMove.__isDefined_function) {
+    //         std::swap(this->function, _toMove.function);
+    //     }
+    //     if(_toMove.__isDefined_pos) {
+    //         std::swap(this->pos, _toMove.pos);
+    //     }
+    //     __isDefined_label = _toMove.__isDefined_label;
+    //     __isDefined_function = _toMove.__isDefined_function;
+    //     __isDefined_pos = _toMove.__isDefined_pos;
+    //     __nullCell = _toMove.__nullCell;
+    //     return *this;
+    // }
 
-    }
-    __cell::__cell(std::string _label, __type_cellFunc _function): label(_label), function(_function), __isDefined_label(true), __isDefined_function(true) {
 
-    }
-    __cell::__cell(std::string _label, __type_cellFunc _function, Pos2d<int> _pos): label(_label), function(_function), pos(_pos), __isDefined_label(true), __isDefined_function(true), __isDefined_pos(true) {
-
-    }
-
-    __cell::__cell(const __cell& _toCopy) {
-        if(_toCopy.__isDefined_label) {
-            this->label = _toCopy.label;
-        }
-        if(_toCopy.__isDefined_function) {
-            this->function = _toCopy.function;
-        }
-        if(_toCopy.__isDefined_pos) {
-            this->pos = _toCopy.pos;
-        }
-        
-        __isDefined_label = _toCopy.__isDefined_label;
-        __isDefined_function = _toCopy.__isDefined_function;
-        __isDefined_pos = _toCopy.__isDefined_pos;
-
-        __nullCell = _toCopy.__nullCell;
-    }
-    __cell::__cell(__cell&& _toMove) {
-        if(_toMove.__isDefined_label) {
-            std::swap(this->label, _toMove.label);
-        }
-        if(_toMove.__isDefined_function) {
-            std::swap(this->function, _toMove.function);
-        }
-        if(_toMove.__isDefined_pos) {
-            std::swap(this->pos, _toMove.pos);
-        }
-
-        __isDefined_label = _toMove.__isDefined_label;
-        __isDefined_function = _toMove.__isDefined_function;
-        __isDefined_pos = _toMove.__isDefined_pos;
-
-        __nullCell = _toMove.__nullCell;
-    }
-    __cell::~__cell() {
-
-    }
-    __cell& __cell::operator=(const __cell& _toCopy) {
-        if(_toCopy.__isDefined_label) {
-            this->label = _toCopy.label;
-        }
-        if(_toCopy.__isDefined_function) {
-            this->function = _toCopy.function;
-        }
-        if(_toCopy.__isDefined_pos) {
-            this->pos = _toCopy.pos;
-        }
-        
-        __isDefined_label = _toCopy.__isDefined_label;
-        __isDefined_function = _toCopy.__isDefined_function;
-        __isDefined_pos = _toCopy.__isDefined_pos;
-
-        __nullCell = _toCopy.__nullCell;
-
-        return *this;
-    }
-    __cell& __cell::operator=(__cell&& _toMove) {
-        if(_toMove.__isDefined_label) {
-            std::swap(this->label, _toMove.label);
-        }
-        if(_toMove.__isDefined_function) {
-            std::swap(this->function, _toMove.function);
-        }
-        if(_toMove.__isDefined_pos) {
-            std::swap(this->pos, _toMove.pos);
-        }
-
-        __isDefined_label = _toMove.__isDefined_label;
-        __isDefined_function = _toMove.__isDefined_function;
-        __isDefined_pos = _toMove.__isDefined_pos;
-
-        __nullCell = _toMove.__nullCell;
-
-        return *this;
-    }
 
 
     __table_row::__table_row(std::vector<__cell>& _table_row): __tableCellRow(_table_row) {
@@ -272,14 +259,33 @@ namespace TUINC {
 
     void __table::__update__string_table() {
         
-        std::vector<size_t> __size_columns;
-        std::vector<size_t> __size_row;
+        if(__tableOfCells.size()==0) {
+            return;
+        }
+        if(__tableOfCells.at(0).size()==0) {
+            return;
+        }
+
+        std::vector<size_t> __size_columns(__tableOfCells.at(0).size(), 0);
+        std::vector<size_t> __size_rows(__tableOfCells.size(), 1);
         
-        for(size_t _x=0; _x<__tableOfCells.at(0).size(); _x++) {
-            for(size_t _y=0; _y<__tableOfCells.size(); _y++) {
-                
+        for(size_t _y=0; _y<__tableOfCells.size(); _y++) {
+            for(size_t _x=0; _x<__tableOfCells.at(0).size(); _x++) {
+                auto cell = __tableOfCells.at(_y).at(_x);
+                if(cell.__nullCell) continue;
+
+                Pos2d<size_t> textBoxDim(0, 0);
+                textBoxDim.x = cell.label.size();
+                for(size_t i=0; i<cell.label.size(); i++) {
+                    if(cell.label.at(i)=='\n') textBoxDim.y++;
+                }
+
+                if(textBoxDim.x>__size_columns.at(_x))  __size_columns.at(_x)   = textBoxDim.x;
+                if(textBoxDim.y>__size_rows.at(_y))     __size_rows.at(_y)      = textBoxDim.y;
+
             }
         }
+        
         
         
     }
