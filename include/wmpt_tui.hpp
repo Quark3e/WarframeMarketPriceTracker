@@ -76,10 +76,10 @@ namespace TUINC {
     using __type_cellFunc = std::function<void(__table&)>;
 
 
-    enum enum_cellType {
-        null,
-        text,
-        function
+    enum cell_types {
+        null    = 0,
+        text    = 1,
+        function= 2
     };
 
     struct __cell_singleTempHolder {
@@ -112,8 +112,9 @@ namespace TUINC {
         // bool    __isDefined_function= false;
         // bool    __isDefined_pos     = false;
         
+            
         std::string     __table_ID;
-        enum_cellType   __cellType{null};
+        cell_types      __cellType{null};
         Pos2d<int>      __pos;
 
         __cellType_null     __cellContent_null;
@@ -121,7 +122,25 @@ namespace TUINC {
         __cellType_function __cellContent_function;
 
         public:
-
+    
+        //__cell() = delete; //?
+        __cell(cell_types _cellType=cell_types::null);
+        __cell(std::string _text, cell_types _cellType=cell_types::text);
+        __cell(std::string _text, __type_cellFunc _func);
+        __cell(__type_cellFunc _func);
+        
+        __cell(const __cell& _toCopy);
+        __cell(__cell&& _toMove);
+        ~__cell();
+        __cell& operator=(const __cell& _toCopy);
+        __cell& operator=(__cell&& _toMove);
+        
+        
+        Pos2d<int>& pos();
+        Pos2d<int>  pos() const;
+        
+        std::string& text();
+        std::string  text() const;
         
 
         // __cell() = delete; // ?
