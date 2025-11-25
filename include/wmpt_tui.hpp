@@ -183,6 +183,8 @@ namespace TUINC {
 
     class   __table_row {
         private:
+        __table* __tablePtr{nullptr};
+            
         std::vector<__cell>& __tableCellRow;
 
         std::vector<bool> __isModified;
@@ -202,12 +204,17 @@ namespace TUINC {
         __cell& at(size_t _i);
         __cell  at(size_t _i) const;
 
+        int set_tablePtr(__table* _tablePtr);
+        
+        __table* get_tablePtr();
+        
         size_t size();
+        
+        void resetModificationFlag(int _i=-1);
+        /// check every cell for the coordinate
+        void checkRow(bool _correctPos=true);
 
-        void resetModificationFlag();
-        void checkCells();
-
-        bool isModified();
+        bool isModified(int _i=-1);
 
     };
     enum style_axisCellScalingMethod {
