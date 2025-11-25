@@ -148,29 +148,29 @@ namespace Useful {
     };
 
     
-    /***
-     * @brief Get size of terminal window
-     * @param width reference to integer variable for width
-     * @param height reference to integer variable for height
-     * @return `0`-successful; `-1`-error
-    */
-    inline int getTermSize(int &width, int &height) {
-#if _WIN32
-        CONSOLE_SCREEN_BUFFER_INFO csbi;
-        int columns, rows;
-        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-        width   = csbi.srWindow.Right   - csbi.srWindow.Left    + 1;
-        height  = csbi.srWindow.Bottom  - csbi.srWindow.Top     + 1;
-#else
-        struct winsize winDim;
-        if(ioctl(STDOUT_FILENO,TIOCGWINSZ,&winDim)==-1) {
-            return -1;
-        }
-        width   = winDim.ws_col;
-        height  = winDim.ws_row;
-#endif
-        return 0;
-    }
+//     /***
+//      * @brief Get size of terminal window
+//      * @param width reference to integer variable for width
+//      * @param height reference to integer variable for height
+//      * @return `0`-successful; `-1`-error
+//     */
+//     inline int getTermSize(int &width, int &height) {
+// #if _WIN32
+//         CONSOLE_SCREEN_BUFFER_INFO csbi;
+//         int columns, rows;
+//         GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+//         width   = csbi.srWindow.Right   - csbi.srWindow.Left    + 1;
+//         height  = csbi.srWindow.Bottom  - csbi.srWindow.Top     + 1;
+// #else
+//         struct winsize winDim;
+//         if(ioctl(STDOUT_FILENO,TIOCGWINSZ,&winDim)==-1) {
+//             return -1;
+//         }
+//         width   = winDim.ws_col;
+//         height  = winDim.ws_row;
+// #endif
+//         return 0;
+//     }
 
 
     /**
