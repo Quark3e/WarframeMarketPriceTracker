@@ -131,6 +131,8 @@ namespace TUINC {
         bool __isModified__text{true};
         bool __isModified__function{true};
 
+        int __setModified_cellInTableRow();
+
         public:
     
         //__cell() = delete; //?
@@ -184,10 +186,17 @@ namespace TUINC {
     class   __table_row {
         private:
         __table* __tablePtr{nullptr};
-            
+        
+        size_t __table_yRow;
+
+        bool __isDefined__table_yRow{false};
+
         std::vector<__cell>& __tableCellRow;
 
-        std::vector<bool> __isModified;
+        bool __isModified__tablePtr{true};
+        std::vector<bool> __isModified__cells;
+
+        friend int __cell::__setModified_cellInTableRow();
 
         public:
         __table_row(std::initializer_list<__cell> _table_row);
@@ -210,9 +219,15 @@ namespace TUINC {
         
         size_t size();
         
+
         void resetModificationFlag(int _i=-1);
+
+        enum class Enum_checkCells_whenIncorrect {
+            perform_correction,
+            throw_exception
+        };
         /// check every cell for the coordinate
-        void checkRow(bool _correctPos=true);
+        void checkCells(Enum_checkCells_whenIncorrect _operation=Enum_checkCells_whenIncorrect::perform_correction);
 
         bool isModified(int _i=-1);
 

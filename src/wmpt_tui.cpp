@@ -144,6 +144,16 @@ int TUINC::Drive() {
 
 namespace TUINC {
 
+    int __cell::__setModified_cellInTableRow() {
+        if(!__table_rowPtr) throw std::runtime_error("__cell::__setModified() : member was called when __table_rowPtr has not been defined and the cell has not been placed in a table_row");
+        if(!__isDefined__pos) throw std::runtime_error("__cell::__setModified() : a position value has not been defined for this cell yet this member function was called");
+        if(__table_rowPtr->__isModified__cells.size()<__pos.x) throw std::runtime_error("__cell::__setModified() : invalid _x value, which is bigger than the number of indexible cells in the __table_row.");
+
+        __table_rowPtr->__isModified__cells.at(__pos.x) = true;
+
+        return 0;
+    }
+
     __cell::__cell(cell_types _cellType): __cellType(_cellType) {
 
     }
@@ -220,11 +230,13 @@ namespace TUINC {
     int __cell::set_tablePtr(__table* _tablePtr) {
         __tablePtr = _tablePtr;
         __isModified__tablePtr = true;
+        if(__table_rowPtr) __setModified_cellInTableRow();
         return 0;
     }
     int __cell::set_table_rowPtr(__table_row* _table_rowPtr) {
         __table_rowPtr = _table_rowPtr;
         __isModified__table_rowPtr = true;
+        if(__table_rowPtr) __setModified_cellInTableRow();
         return 0;
     }
 
@@ -232,18 +244,21 @@ namespace TUINC {
         __pos = _pos;
         __isDefined__pos = true;
         __isModified__pos = true;
+        if(__table_rowPtr) __setModified_cellInTableRow();
         return 0;
     }
     int __cell::set_text(std::string _text) {
         __text = _text;
         __isDefined__text = true;
         __isModified__text = true;
+        if(__table_rowPtr) __setModified_cellInTableRow();
         return 0;
     }
     int __cell::set_function(__type_cellFunc _func) {
         __function = _func;
         __isDefined__function = true;
         __isModified__function = true;
+        if(__table_rowPtr) __setModified_cellInTableRow();
         return 0;
     }
     int __cell::setContent_null(__cellTypeContent_null _newContent) {
@@ -266,18 +281,23 @@ namespace TUINC {
     }
     void __cell::change_type(cell_types _newType) {
         __cellType = _newType;
+        __isModified__cellType = true;
+        if(__table_rowPtr) __setModified_cellInTableRow();
     }
     void __cell::change_type(cell_types _newType, std::string _text) {
         this->change_type(_newType);
         __text = _text;
+        __isModified__text = true;
     }
     void __cell::change_type(cell_types _newType, std::string _text, __type_cellFunc _func) {
         this->change_type(_newType, _text);
         __function = _func;
+        __isModified__function = true;
     }
     void __cell::change_type(cell_types _newType, __type_cellFunc _func) {
         this->change_type(_newType);
         __function = _func;
+        __isModified__function = true;
     }
 
     __table*        __cell::get_tablePtr() const {
@@ -320,6 +340,10 @@ namespace TUINC {
         __isModified__pos = false;
         __isModified__text = false;
         __isModified__function = false;
+
+        if(__table_rowPtr) {
+            __table_rowPtr->resetModificationFlag(__pos.x);
+        }
     }
     bool __cell::isModified() {
         return (__isModified__tablePtr || __isModified__table_rowPtr || __isModified__pos || __isModified__text || __isModified__function);
@@ -372,9 +396,72 @@ namespace TUINC {
         return __tableCellRow.at(_i);
     }
 
+    int __table_row::set_tablePtr(__table* _tablePtr) {
+        __tablePtr = _tablePtr;
+        __isModified__tablePtr = true;
+        return 0;
+    };
+
+    __table* __table_row::get_tablePtr() {
+        return __tablePtr;
+    }
+
     size_t __table_row::size() {
         return __tableCellRow.size();
     }
+
+    void __table_row::resetModificationFlag(int _i) {
+        if(_i>=__tableCellRow.size()) throw std::out_of_range(std::string("__table_row::ModificationFlag(int) : input value of ")+std::to_string(_i)+"is out of range "+std::to_string(__tableCellRow.size()));
+        else if(_i<-1) throw std::runtime_error("__table_row::ModificationFlag(int) : invalid negative value.");
+        
+        if(_i<0) for(auto& _ref : __isModified__cells) {
+            _ref = false;
+        }
+        else {
+            __isModified__cells.at(_i) = false;
+        }
+    }
+
+    void __table_row::checkCells(Enum_checkCells_whenIncorrect _operation) {
+        
+        for(size_t _i=0; _i<__tableCellRow.size(); _i++) {
+            auto cell = __tableCellRow.at(_i);
+            if(cell.get_pos().x != _i) {
+                switch (_operation) {
+                case Enum_checkCells_whenIncorrect::perform_correction:
+                    cell.set_pos();
+                    break;
+                case Enum_checkCells_whenIncorrect::throw_exception:
+                    throw std::runtime_error(std::string("__table_row::checkCells(Enum_checkCells_whenIncorrect) : incorrect x value of cell at [i]:")+std::to_string(_i));
+                    break;
+                default:
+                    throw std::runtime_error(std::string("__table_row::checkCells(Enum_checkCells_whenIncorrect) : invalid enum value at [i]:")+std::to_string(_i));
+                    break;
+                }
+            }
+        }
+
+    }
+
+    bool __table_row::isModified(int _i) {
+        if(_i>=__isModified__cells.size()) throw std::out_of_range(std::string("__table_row::isModified(int) : input value of ")+std::to_string(_i)+"is out of range "+std::to_string(__isModified__cells.size()));
+        else if(_i<-1) throw std::runtime_error("__table_row::isModified(int) : invalid negative value.");
+        
+        bool isModif = false;
+
+        if(_i>-1) isModif = __isModified__cells.at(_i);
+        else {
+            for(bool _var : __isModified__cells) {
+                if(_var) {
+                    isModif = true;
+                    break;
+                }
+            }
+        }
+
+        return isModif;
+    }
+
 
     std::vector<std::string> __table::__help__separateLines(std::string _toSep, std::string _delim) {
         if(_toSep.size()==0) throw std::runtime_error("__table::__help__separateLines(std::string, std::string) : _toSep value cannot be empty.");
