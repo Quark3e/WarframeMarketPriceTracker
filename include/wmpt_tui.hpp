@@ -71,7 +71,7 @@ namespace TUINC {
 
     
     class __cell;
-    class __table_row;
+    // class __table_row;
     class __table;
 
     using __type_cellFunc = std::function<void(__table*)>;
@@ -99,13 +99,9 @@ namespace TUINC {
 
     class  __cell {
         private:
-            
-        __table*        __tablePtr{nullptr};
-        /**
-         * Pointer to the table_row class this cell is stored in.
-         * 
-         */
-        __table_row*    __table_rowPtr{nullptr};
+        
+        __table*    __tablePtr{nullptr};
+
         cell_types      __cellType{null};
         Pos2d<int>      __pos;
 
@@ -125,13 +121,16 @@ namespace TUINC {
         // bool __isDefined__cellContent_function{false};
 
         bool __isModified__tablePtr{true};
-        bool __isModified__table_rowPtr{true};
         bool __isModified__cellType{true};
         bool __isModified__pos{true};
         bool __isModified__text{true};
         bool __isModified__function{true};
 
-        int __setModified_cellInTableRow();
+        // int __setModified_cellInTableRow();
+
+        void __cell_resetModificationFlag();
+
+        friend class __table;
 
         public:
     
@@ -150,7 +149,6 @@ namespace TUINC {
         void call();
         
         int set_tablePtr(__table* _tablePtr);
-        int set_table_rowPtr(__table_row* _table_rowPtr);
         int set_pos(Pos2d<int> _pos);
         int set_text(std::string _text);
         int set_function(__type_cellFunc _func);
@@ -164,7 +162,6 @@ namespace TUINC {
         void change_type(cell_types _newType, __type_cellFunc _func);
 
         __table*        get_tablePtr() const;
-        __table_row*    get_table_rowPtr() const;
         Pos2d<int>      get_pos() const;
         std::string     get_text() const;
         __type_cellFunc get_function() const;
@@ -173,65 +170,60 @@ namespace TUINC {
         __cellTypeContent_function  get_cellContent_function() const;
         cell_types get_type() const;
 
-        void resetModificationFlag();
         bool isModified();
         bool isModified_tablePtr();
-        bool isModified_table_rowPtr();
         bool isModified_pos();
         bool isModified_text();
         bool isModified_function();
         
     };
 
-    class   __table_row {
-        private:
-        __table* __tablePtr{nullptr};
-        
-        size_t __table_yRow;
+    // class   __table_row {
+    //     private:
+    //     __table* __tablePtr{nullptr};
+    //     bool __isDefined__table_yRow{false};
+    //     size_t __table_yRow;
+    //     bool __isModified__tablePtr{true};
+    //     std::vector<bool> __isModified__cells;
+    //     std::vector<__cell>& __tableCellRow;
+    //     friend class __cell;
+    //     friend class __table;
+    //     /**
+    //      * @brief Called by __table to reset the modification flags of the cells stored in this class
+    //      * 
+    //      */
+    //     void __resetModificationFlag();
+    //     /**
+    //      * @brief Used by __cell's stored in this row to flag their respective boolean value for "isModified" as true.
+    //      * 
+    //      * @param _cellPtrToFlag 
+    //      */
+    //     void __set_cell_isModified(__cell* _cellPtrToFlag);
+    //     enum class Enum_checkCells_whenIncorrect {
+    //         perform_correction,
+    //         throw_exception
+    //     };
+    //     /// check every cell for the coordinate
+    //     void __checkCells(Enum_checkCells_whenIncorrect _operation=Enum_checkCells_whenIncorrect::perform_correction);
+    //     public:
+    //     __table_row(std::vector<__cell>& _table_row);
+    //     __table_row() = delete;
+    //     __table_row(const __table_row& _toCopy) = delete; //copy constructor not allowed
+    //     __table_row(__table_row&& _toMove);
+    //     ~__table_row();
+    //     __table_row& operator=(const __table_row& _toCopy) = delete;
+    //     __table_row& operator=(__table_row&& _toMove);
+    //     __cell& operator[](size_t _i);
+    //     __cell  operator[](size_t _i) const;
+    //     __cell& at(size_t _i);
+    //     __cell  at(size_t _i) const;
+    //     int set_tablePtr(__table* _tablePtr); // private friend method from `__table`?
+    //     __table* get_tablePtr();
+    //     size_t size();
+    //     bool isModified(int _i=-1);
+    // };
 
-        bool __isDefined__table_yRow{false};
 
-        std::vector<__cell>& __tableCellRow;
-
-        bool __isModified__tablePtr{true};
-        std::vector<bool> __isModified__cells;
-
-        friend int __cell::__setModified_cellInTableRow();
-
-        public:
-        __table_row(std::initializer_list<__cell> _table_row);
-        __table_row(std::vector<__cell> _table_row);
-        __table_row() = delete;
-        __table_row(const __table_row& _toCopy) = delete;
-        __table_row(__table_row&& _toMove);
-        ~__table_row();
-        __table_row& operator=(const __table_row& _toCopy) = delete;
-        __table_row& operator=(__table_row&& _toMove);
-
-        __cell& operator[](size_t _i);
-        __cell  operator[](size_t _i) const;
-        __cell& at(size_t _i);
-        __cell  at(size_t _i) const;
-
-        int set_tablePtr(__table* _tablePtr);
-        
-        __table* get_tablePtr();
-        
-        size_t size();
-        
-
-        void resetModificationFlag(int _i=-1);
-
-        enum class Enum_checkCells_whenIncorrect {
-            perform_correction,
-            throw_exception
-        };
-        /// check every cell for the coordinate
-        void checkCells(Enum_checkCells_whenIncorrect _operation=Enum_checkCells_whenIncorrect::perform_correction);
-
-        bool isModified(int _i=-1);
-
-    };
     enum style_axisCellScalingMethod {
         cellWidth,      // scale every column accordingly to their longest cell and likely go out of bounds or vice-versa to the TUI menu screen width.
         fitMenuAxis    // scale every column so they fit within the menu's axis evenly. Can cause clipping of text between column delimiters.
@@ -246,10 +238,7 @@ namespace TUINC {
          *      {[1, 0], [1, 1], [1, 2]}
          *  }
          */
-        std::vector<__table_row> __tableOfCells;
-
-
-        // --- graphics settings ---
+        std::vector<std::vector<__cell>> __tableOfCells;
         
         /**
          * Character-size dimensions of table. -1 means use dimensions of terminal
@@ -278,7 +267,15 @@ namespace TUINC {
         std::string __borderSymb_row{"-"};
         std::string __rowSeparator{"\n"};
 
+        enum class Enum_setTableRowY_alreadyExists {
+            overwrite,
+            swap,
+            throwException
+        };
+        int __table::__move__table_row_Y(size_t _yRowToMove, size_t _newY, Enum_setTableRowY_alreadyExists _existingMethod=Enum_setTableRowY_alreadyExists::overwrite);
+
         public:
+
         __table(std::initializer_list<std::initializer_list<__cell>> _matrixInput);
 
         __table();
@@ -289,10 +286,10 @@ namespace TUINC {
         __table& operator=(__table&& _toMove);
         __table& operator=(std::initializer_list<std::initializer_list<__cell>> _matrixInput);
         
-        __table_row& operator[](size_t _i);
-        // __table_row  operator[](size_t _i) const;
-        __table_row& at(size_t _i);
-        // __table_row  at(size_t _i) const;
+        std::vector<__cell>& operator[](size_t _i);
+        std::vector<__cell>  operator[](size_t _i) const;
+        std::vector<__cell>& at(size_t _i);
+        std::vector<__cell>  at(size_t _i) const;
 
         __cell& cell(size_t _x, size_t _y);
         __cell  cell(size_t _x, size_t _y) const;
@@ -303,8 +300,7 @@ namespace TUINC {
         size_t columns();
         size_t size();
         
-        std::vector<__cell> continuous();
-        std::vector<__cell> nonNull_continuous();
+        std::vector<__cell> continuous(bool _includeNullCells=true);
 
         // int addCell(size_t _x, size_t _y);
         // int addCell(Pos2d<int> _pos);

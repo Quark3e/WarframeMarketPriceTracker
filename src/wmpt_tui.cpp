@@ -144,15 +144,6 @@ int TUINC::Drive() {
 
 namespace TUINC {
 
-    int __cell::__setModified_cellInTableRow() {
-        if(!__table_rowPtr) throw std::runtime_error("__cell::__setModified() : member was called when __table_rowPtr has not been defined and the cell has not been placed in a table_row");
-        if(!__isDefined__pos) throw std::runtime_error("__cell::__setModified() : a position value has not been defined for this cell yet this member function was called");
-        if(__table_rowPtr->__isModified__cells.size()<__pos.x) throw std::runtime_error("__cell::__setModified() : invalid _x value, which is bigger than the number of indexible cells in the __table_row.");
-
-        __table_rowPtr->__isModified__cells.at(__pos.x) = true;
-
-        return 0;
-    }
 
     __cell::__cell(cell_types _cellType): __cellType(_cellType) {
 
@@ -166,7 +157,6 @@ namespace TUINC {
 
     __cell::__cell(const __cell& _toCopy): __cellType(_toCopy.__cellType) {
         __tablePtr = _toCopy.__tablePtr;
-        __table_rowPtr = _toCopy.__table_rowPtr;
         if(_toCopy.__isDefined__pos) __pos = _toCopy.__pos;
         if(_toCopy.__isDefined__text) __text = _toCopy.__text;
         if(_toCopy.__isDefined__function) __function = _toCopy.__function;
@@ -175,7 +165,7 @@ namespace TUINC {
         // if(_toCopy.__isDefined__cellContent_function) __cellContent_function = _toCopy.__cellContent_function;
 
     }
-    __cell::__cell(__cell&& _toMove): __cellType(std::move(_toMove.__cellType)), __tablePtr(std::move(_toMove.__tablePtr)), __table_rowPtr(std::move(_toMove.__table_rowPtr)) {
+    __cell::__cell(__cell&& _toMove): __cellType(std::move(_toMove.__cellType)), __tablePtr(std::move(_toMove.__tablePtr)) {
         
         if(_toMove.__isDefined__pos) std::swap(__pos, _toMove.__pos);
         if(_toMove.__isDefined__text) std::swap(__text, _toMove.__text);
@@ -191,7 +181,6 @@ namespace TUINC {
     __cell& __cell::operator=(const __cell& _toCopy) {
         __cellType = _toCopy.__cellType;
         __tablePtr = _toCopy.__tablePtr;
-        __table_rowPtr = _toCopy.__table_rowPtr;
         if(_toCopy.__isDefined__pos) __pos = _toCopy.__pos;
         if(_toCopy.__isDefined__text) __text = _toCopy.__text;
         if(_toCopy.__isDefined__function) __function = _toCopy.__function;
@@ -203,7 +192,6 @@ namespace TUINC {
         std::swap(__cellType, _toMove.__cellType);
         
         std::swap(__tablePtr, _toMove.__tablePtr);
-        std::swap(__table_rowPtr, _toMove.__table_rowPtr);
         if(_toMove.__isDefined__pos) std::swap(__pos, _toMove.__pos);
         if(_toMove.__isDefined__text) std::swap(__text, _toMove.__text);
         if(_toMove.__isDefined__function) std::swap(__function, _toMove.__function);
@@ -230,13 +218,6 @@ namespace TUINC {
     int __cell::set_tablePtr(__table* _tablePtr) {
         __tablePtr = _tablePtr;
         __isModified__tablePtr = true;
-        if(__table_rowPtr) __setModified_cellInTableRow();
-        return 0;
-    }
-    int __cell::set_table_rowPtr(__table_row* _table_rowPtr) {
-        __table_rowPtr = _table_rowPtr;
-        __isModified__table_rowPtr = true;
-        if(__table_rowPtr) __setModified_cellInTableRow();
         return 0;
     }
 
@@ -244,21 +225,18 @@ namespace TUINC {
         __pos = _pos;
         __isDefined__pos = true;
         __isModified__pos = true;
-        if(__table_rowPtr) __setModified_cellInTableRow();
         return 0;
     }
     int __cell::set_text(std::string _text) {
         __text = _text;
         __isDefined__text = true;
         __isModified__text = true;
-        if(__table_rowPtr) __setModified_cellInTableRow();
         return 0;
     }
     int __cell::set_function(__type_cellFunc _func) {
         __function = _func;
         __isDefined__function = true;
         __isModified__function = true;
-        if(__table_rowPtr) __setModified_cellInTableRow();
         return 0;
     }
     int __cell::setContent_null(__cellTypeContent_null _newContent) {
@@ -282,7 +260,6 @@ namespace TUINC {
     void __cell::change_type(cell_types _newType) {
         __cellType = _newType;
         __isModified__cellType = true;
-        if(__table_rowPtr) __setModified_cellInTableRow();
     }
     void __cell::change_type(cell_types _newType, std::string _text) {
         this->change_type(_newType);
@@ -302,9 +279,6 @@ namespace TUINC {
 
     __table*        __cell::get_tablePtr() const {
         return __tablePtr;
-    }
-    __table_row*    __cell::get_table_rowPtr() const {
-        return __table_rowPtr;
     }
     Pos2d<int>      __cell::get_pos() const {
         if(!__isDefined__pos) throw std::runtime_error("__cell::get_pos() const : member called when pos has not been defined.");
@@ -334,25 +308,18 @@ namespace TUINC {
         return __cellType;
     }
     
-    void __cell::resetModificationFlag() {
+    void __cell::__cell_resetModificationFlag() {
         __isModified__tablePtr = false;
-        __isModified__table_rowPtr = false;
         __isModified__pos = false;
         __isModified__text = false;
         __isModified__function = false;
 
-        if(__table_rowPtr) {
-            __table_rowPtr->resetModificationFlag(__pos.x);
-        }
     }
     bool __cell::isModified() {
-        return (__isModified__tablePtr || __isModified__table_rowPtr || __isModified__pos || __isModified__text || __isModified__function);
+        return (__isModified__tablePtr || __isModified__pos || __isModified__text || __isModified__function);
     }
     bool __cell::isModified_tablePtr() {
         return __isModified__tablePtr;
-    }
-    bool __cell::isModified_table_rowPtr() {
-        return __isModified__table_rowPtr;
     }
     bool __cell::isModified_pos() {
         return __isModified__pos;
@@ -364,103 +331,96 @@ namespace TUINC {
         return __isModified__function;
     }
 
-
-    __table_row::__table_row(std::vector<__cell> _table_row): __tableCellRow(_table_row) {
-
-    }
-    // __table_row::__table_row(const __table_row& _toCopy) {
-    //     __tableCellRow =_toCopy.__tableCellRow;
+    
+    // __table_row::__table_row(std::vector<__cell>& _table_row): __tableCellRow(_table_row) {
     // }
-    __table_row::__table_row(__table_row&& _toMove): __tableCellRow(std::move(_toMove.__tableCellRow)) {
-
-    }
-    __table_row::~__table_row() {
-
-    }
-    //__table_row& __table_row::operator=(const __table_row& _toCopy) {
-    //}
-    __table_row& __table_row::operator=(__table_row&& _toMove) {
-        std::swap(__tableCellRow, _toMove.__tableCellRow);
-    }
-
-    __cell& __table_row::operator[](size_t _i) {
-        return __tableCellRow[_i];
-    }
-    __cell  __table_row::operator[](size_t _i) const {
-        return __tableCellRow[_i];
-    }
-    __cell& __table_row::at(size_t _i) {
-        return __tableCellRow.at(_i);
-    }
-    __cell __table_row::at(size_t _i) const  {
-        return __tableCellRow.at(_i);
-    }
-
-    int __table_row::set_tablePtr(__table* _tablePtr) {
-        __tablePtr = _tablePtr;
-        __isModified__tablePtr = true;
-        return 0;
-    };
-
-    __table* __table_row::get_tablePtr() {
-        return __tablePtr;
-    }
-
-    size_t __table_row::size() {
-        return __tableCellRow.size();
-    }
-
-    void __table_row::resetModificationFlag(int _i) {
-        if(_i>=__tableCellRow.size()) throw std::out_of_range(std::string("__table_row::ModificationFlag(int) : input value of ")+std::to_string(_i)+"is out of range "+std::to_string(__tableCellRow.size()));
-        else if(_i<-1) throw std::runtime_error("__table_row::ModificationFlag(int) : invalid negative value.");
-        
-        if(_i<0) for(auto& _ref : __isModified__cells) {
-            _ref = false;
-        }
-        else {
-            __isModified__cells.at(_i) = false;
-        }
-    }
-
-    void __table_row::checkCells(Enum_checkCells_whenIncorrect _operation) {
-        
-        for(size_t _i=0; _i<__tableCellRow.size(); _i++) {
-            auto cell = __tableCellRow.at(_i);
-            if(cell.get_pos().x != _i) {
-                switch (_operation) {
-                case Enum_checkCells_whenIncorrect::perform_correction:
-                    cell.set_pos();
-                    break;
-                case Enum_checkCells_whenIncorrect::throw_exception:
-                    throw std::runtime_error(std::string("__table_row::checkCells(Enum_checkCells_whenIncorrect) : incorrect x value of cell at [i]:")+std::to_string(_i));
-                    break;
-                default:
-                    throw std::runtime_error(std::string("__table_row::checkCells(Enum_checkCells_whenIncorrect) : invalid enum value at [i]:")+std::to_string(_i));
-                    break;
-                }
-            }
-        }
-
-    }
-
-    bool __table_row::isModified(int _i) {
-        if(_i>=__isModified__cells.size()) throw std::out_of_range(std::string("__table_row::isModified(int) : input value of ")+std::to_string(_i)+"is out of range "+std::to_string(__isModified__cells.size()));
-        else if(_i<-1) throw std::runtime_error("__table_row::isModified(int) : invalid negative value.");
-        
-        bool isModif = false;
-
-        if(_i>-1) isModif = __isModified__cells.at(_i);
-        else {
-            for(bool _var : __isModified__cells) {
-                if(_var) {
-                    isModif = true;
-                    break;
-                }
-            }
-        }
-
-        return isModif;
-    }
+    // // __table_row::__table_row(const __table_row& _toCopy) {
+    // //     __tableCellRow =_toCopy.__tableCellRow;
+    // // }
+    // __table_row::__table_row(__table_row&& _toMove): __tableCellRow(std::move(_toMove.__tableCellRow)) {
+    // }
+    // __table_row::~__table_row() {
+    // }
+    // //__table_row& __table_row::operator=(const __table_row& _toCopy) {
+    // //}
+    // __table_row& __table_row::operator=(__table_row&& _toMove) {
+    //     std::swap(__tableCellRow, _toMove.__tableCellRow);
+    // }
+    // __cell& __table_row::operator[](size_t _i) {
+    //     return __tableCellRow[_i];
+    // }
+    // __cell  __table_row::operator[](size_t _i) const {
+    //     return __tableCellRow[_i];
+    // }
+    // __cell& __table_row::at(size_t _i) {
+    //     return __tableCellRow.at(_i);
+    // }
+    // __cell __table_row::at(size_t _i) const  {
+    //     return __tableCellRow.at(_i);
+    // }
+    // int __table_row::set_tablePtr(__table* _tablePtr) {
+    //     __tablePtr = _tablePtr;
+    //     __isModified__tablePtr = true;
+    //     return 0;
+    // };
+    // __table* __table_row::get_tablePtr() {
+    //     return __tablePtr;
+    // }
+    // size_t __table_row::size() {
+    //     return __tableCellRow.size();
+    // }
+    // void __table_row::__resetModificationFlag() {
+    //     for(size_t _i=0; _i<__isModified__cells.size(); _i++) {
+    //         __tableCellRow.at(_i).__cell_resetModificationFlag();
+    //         __isModified__cells.at(_i) = false;
+    //     }
+    // }
+    // void __table_row::__set_cell_isModified(__cell* _cellPtrToFlag) {
+    //     if(!_cellPtrToFlag) throw std::runtime_error("__table_row::__set_cell_isModified(_cell*) : pointer argument for __cell cannot be nullptr.");
+    //     bool cellFound = false;
+    //     for(size_t _i=0; _i<__tableCellRow.size(); _i++) {
+    //         if(&__tableCellRow.at(_i)==_cellPtrToFlag) {
+    //             __isModified__cells.at(_i) = true;
+    //             cellFound = true;
+    //             break;
+    //         }
+    //     }
+    //     if(!cellFound) throw std::runtime_error("__table_row::__set_cell_isModified(_cell*) : invalid pointer argument. Given __cell address doesn't exist in this row as a stored cell.");
+    // }
+    // void __table_row::__checkCells(Enum_checkCells_whenIncorrect _operation) {
+    //     for(size_t _i=0; _i<__tableCellRow.size(); _i++) {
+    //         auto cell = __tableCellRow.at(_i);
+    //         auto currCellPos = cell.get_pos();
+    //         if(currCellPos.x!=_i || (__isDefined__table_yRow? currCellPos.y!=__table_yRow : true)) {
+    //             switch (_operation) {
+    //             case Enum_checkCells_whenIncorrect::perform_correction:
+    //                 cell.set_pos({_i, (__isDefined__table_yRow? __table_yRow : currCellPos.y)});
+    //                 break;
+    //             case Enum_checkCells_whenIncorrect::throw_exception:
+    //                 throw std::runtime_error(std::string("__table_row::checkCells(Enum_checkCells_whenIncorrect) : incorrect pos value of cell at [i]:")+std::to_string(_i));
+    //                 break;
+    //             default:
+    //                 throw std::runtime_error(std::string("__table_row::checkCells(Enum_checkCells_whenIncorrect) : invalid enum value at [i]:")+std::to_string(_i));
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
+    // bool __table_row::isModified(int _i) {
+    //     if(_i>=__isModified__cells.size()) throw std::out_of_range(std::string("__table_row::isModified(int) : input value of ")+std::to_string(_i)+"is out of range "+std::to_string(__isModified__cells.size()));
+    //     else if(_i<-1) throw std::runtime_error("__table_row::isModified(int) : invalid negative value.");
+    //     bool isModif = false;
+    //     if(_i>-1) isModif = __isModified__cells.at(_i);
+    //     else {
+    //         for(bool _var : __isModified__cells) {
+    //             if(_var) {
+    //                 isModif = true;
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     return isModif;
+    // }
 
 
     std::vector<std::string> __table::__help__separateLines(std::string _toSep, std::string _delim) {
@@ -622,6 +582,20 @@ namespace TUINC {
         std::swap(__string_table, temporaryFinalString);
     }
 
+    int __table::__move__table_row_Y(size_t _yRowToMove, size_t _newY, Enum_setTableRowY_alreadyExists _existingMethod) {
+        if(_yRowToMove>=__tableOfCells.size()) throw std::runtime_error(std::string("__table::__set__table_row_Y(size_t, size_t, Enum_setTableRowY_alreadyExists) : row at [")+std::to_string(_yRowToMove)+"] doesn't exist.");
+        if(_yRowToMove==_newY) throw std::runtime_error(std::string("__table::__set__table_row_Y(size_t, size_t, Enum_setTableRowY_alreadyExists) : given row idx [")+std::to_string(_yRowToMove)+"] is the same as the new destination Y row.");
+
+
+        if(_newY>=__tableOfCells.size()) {
+            __tableOfCells.insert(__tableOfCells.end(), _newY-__tableOfCells.size()+1, std::vector<__cell>(__tableOfCells.at(0).size(), {}));
+            std::swap(__tableOfCells.back(), __tableOfCells.at(_yRowToMove));
+        }
+
+        return 0;
+    }
+
+
     __table::__table(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
         this->operator=(_matrixInput);
         
@@ -654,21 +628,21 @@ namespace TUINC {
         Pos2d<int>  lineCountedDim(0, _matrixInput.size());
         for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
             for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
-                if(itr_cell->__isDefined_pos) {
-                    if(itr_cell->pos.x > limMatrix_max.x || !limDefined_max.x) {
-                        limMatrix_max.x = itr_cell->pos.x;
+                if(itr_cell->__isDefined__pos) {
+                    if(itr_cell->__pos.x > limMatrix_max.x || !limDefined_max.x) {
+                        limMatrix_max.x = itr_cell->__pos.x;
                         limDefined_max.x = true;
                     }
-                    else if(itr_cell->pos.x < limMatrix_min.x || !limDefined_min.x) {
-                        limMatrix_min.x = itr_cell->pos.x;
+                    else if(itr_cell->__pos.x < limMatrix_min.x || !limDefined_min.x) {
+                        limMatrix_min.x = itr_cell->__pos.x;
                         limDefined_min.x = true;
                     }
-                    if(itr_cell->pos.y > limMatrix_max.y || !limDefined_max.y) {
-                        limMatrix_max.y = itr_cell->pos.y;
+                    if(itr_cell->__pos.y > limMatrix_max.y || !limDefined_max.y) {
+                        limMatrix_max.y = itr_cell->__pos.y;
                         limDefined_max.y = true;
                     }
-                    else if(itr_cell->pos.y < limMatrix_min.y || !limDefined_min.y) {
-                        limMatrix_min.y = itr_cell->pos.y;
+                    else if(itr_cell->__pos.y < limMatrix_min.y || !limDefined_min.y) {
+                        limMatrix_min.y = itr_cell->__pos.y;
                         limDefined_min.y = true;
                     }
 
@@ -685,17 +659,17 @@ namespace TUINC {
             limMatrix_max.y = lineCountedDim.y;
         }
 
-        __tableOfCells = std::vector<std::vector<__cell>>(limMatrix_max.y-limMatrix_min.y, std::vector<__cell>(limMatrix_max.x-limMatrix_min.x, {true}));
+        __tableOfCells = std::vector<std::vector<__cell>>(limMatrix_max.y-limMatrix_min.y, std::vector<__cell>(limMatrix_max.x-limMatrix_min.x, {cell_types::null}));
         
         Pos2d<int> lineCountedPos = limMatrix_min;
         for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
             lineCountedPos.x = limMatrix_min.x;
             for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
-                if(!itr_cell->__nullCell) {
-                    if(itr_cell->__isDefined_pos) __tableOfCells[itr_cell->pos.y][itr_cell->pos.x] = *itr_cell;
+                if(!itr_cell->__cellType==cell_types::null) {
+                    if(itr_cell->__isDefined__pos) __tableOfCells[itr_cell->__pos.y][itr_cell->__pos.x] = *itr_cell;
                     else {
-                        if(__tableOfCells[lineCountedPos.y][lineCountedPos.x].__nullCell) {
-                            __tableOfCells[itr_cell->pos.y][itr_cell->pos.x] = *itr_cell;
+                        if(__tableOfCells[lineCountedPos.y][lineCountedPos.x].__cellType==cell_types::null) {
+                            __tableOfCells[itr_cell->__pos.y][itr_cell->__pos.x] = *itr_cell;
                         }
                     }
                 }
@@ -708,13 +682,17 @@ namespace TUINC {
         return *this;
     }
     
-    
-    __table_row& __table::operator[](size_t _i) {
-        return __table_row(__tableOfCells[_i]);
+    std::vector<__cell>& __table::operator[](size_t _i) {
+        
     }
-    // __table_row  operator[](size_t _i) const;
-    __table_row& __table::at(size_t _i) {
-        return __table_row(__tableOfCells.at(_i));
+    std::vector<__cell>  __table::__table::operator[](size_t _i) const {
+
+    }
+    std::vector<__cell>& __table::at(size_t _i) {
+
+    }
+    std::vector<__cell>  __table::at(size_t _i) const {
+
     }
     // __table_row  at(size_t _i) const;
 
@@ -740,26 +718,18 @@ namespace TUINC {
     size_t __table::size() {
         return __tableOfCells.size() * (__tableOfCells.size()>0? __tableOfCells.at(0).size() : 0);
     }
-    std::vector<__cell> __table::continuous() {
+    std::vector<__cell> __table::continuous(bool _includeNullCells) {
         std::vector<__cell> returVec;
         for(auto row : __tableOfCells) {
             for(auto cell : row) {
+                if(!_includeNullCells && cell.__cellType==cell_types::null) continue;
                 returVec.push_back(cell);
             }
         }
         
         return returVec;
     }
-    std::vector<__cell> __table::nonNull_continuous() {
-        std::vector<__cell> returVec;
-        for(auto row : __tableOfCells) {
-            for(auto cell : row) {
-                if(!cell.__nullCell) returVec.push_back(cell);
-            }
-        }
-        
-        return returVec;
-    }
+
 
     // int __table::addCell(size_t _x, size_t _y) {
     // }
@@ -778,19 +748,25 @@ namespace TUINC {
         if(__tableOfCells.size()==0)        throw std::runtime_error("call(size_t, size_t) : table is empty of cells.");
         if(_y>=__tableOfCells.size())       throw std::runtime_error("call(size_t, size_t) : _y argument is bigger than existing rows in table.");
         if(_x>=__tableOfCells.at(0).size()) throw std::runtime_error("call(size_t, size_t) : _x argument is bigger than existing columns in table.");
-        if(__tableOfCells.at(_y).at(_x).__nullCell) throw std::runtime_error(std::string("call(size_t, size_t) : cell at row:")+std::to_string(_y)+" column:"+std::to_string(_x)+" is a nullCell.");
+        if(__tableOfCells.at(_y).at(_x).__cellType!=cell_types::function) throw std::runtime_error(
+            std::string("call(size_t, size_t) : called cell at row:")+std::to_string(_y)+" column:"+std::to_string(_x)+" is not a function cell but defined as a "+(__tableOfCells.at(_y).at(_x).__cellType==cell_types::null? "null" : "text")+" type cell."
+        );
+        if(!__tableOfCells.at(_y).at(_x).__isDefined__function) throw std::runtime_error(std::string("call(size_t, size_t) : cell at [")+std::to_string(_y)+"]["+std::to_string(_x)+"] doesn't have a defined function to call.");
 
-        __tableOfCells.at(_y).at(_x).function(*this);
+        __tableOfCells.at(_y).at(_x).call();
 
         return Results::Success;
     }
     Results __table::call(Pos2d<int> _pos) {
-        if(__tableOfCells.size()==0)            throw std::runtime_error("call(Pos2d<int>) : table is empty of cells.");
-        if(_pos.y>=__tableOfCells.size())       throw std::runtime_error("call(Pos2d<int>) : y value is bigger than existing rows in table.");
-        if(_pos.x>=__tableOfCells.at(0).size()) throw std::runtime_error("call(Pos2d<int>) : x value is bigger than existing columns in table.");
-        if(__tableOfCells.at(_pos.y).at(_pos.x).__nullCell) throw std::runtime_error(std::string("call(Pos2d<int>) : cell at row:")+std::to_string(_pos.y)+" column:"+std::to_string(_pos.x)+" is a nullCell.");
+        if(__tableOfCells.size()==0)        throw std::runtime_error("call(Pos2d<int>) : table is empty of cells.");
+        if(_pos.y>=__tableOfCells.size())       throw std::runtime_error("call(Pos2d<int>) : _y argument is bigger than existing rows in table.");
+        if(_pos.x>=__tableOfCells.at(0).size()) throw std::runtime_error("call(Pos2d<int>) : _x argument is bigger than existing columns in table.");
+        if(__tableOfCells.at(_pos.y).at(_pos.x).__cellType!=cell_types::function) throw std::runtime_error(
+            std::string("call(Pos2d<int>) : called cell at row:")+std::to_string(_pos.y)+" column:"+std::to_string(_pos.x)+" is not a function cell but defined as a "+(__tableOfCells.at(_pos.y).at(_pos.x).__cellType==cell_types::null? "null" : "text")+" type cell."
+        );
+        if(!__tableOfCells.at(_pos.y).at(_pos.x).__isDefined__function) throw std::runtime_error(std::string("call(Pos2d<int>) : cell at [")+std::to_string(_pos.y)+"]["+std::to_string(_pos.x)+"] doesn't have a defined function to call.");
 
-        __tableOfCells.at(_pos.y).at(_pos.x).function(*this);
+        __tableOfCells.at(_pos.y).at(_pos.x).call();
 
         return Results::Success;
     }
