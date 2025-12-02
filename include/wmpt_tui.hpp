@@ -251,6 +251,8 @@ namespace TUINC {
         /// @brief Maximum character-size heights of each row
         std::vector<size_t> __size_rowHeights;
 
+        void __helper_updateTablePtrInCells();
+        
         std::vector<std::string> __help__separateLines(std::string _toSep, std::string _delim="\n");
         void __update__string_table();
         /// @brief Final string containing the table in full
@@ -266,13 +268,7 @@ namespace TUINC {
         std::string __borderSymb_column{"|"};
         std::string __borderSymb_row{"-"};
         std::string __rowSeparator{"\n"};
-
-        enum class Enum_setTableRowY_alreadyExists {
-            overwrite,
-            swap,
-            throwException
-        };
-        int __table::__move__table_row_Y(size_t _yRowToMove, size_t _newY, Enum_setTableRowY_alreadyExists _existingMethod=Enum_setTableRowY_alreadyExists::overwrite);
+        
 
         public:
 

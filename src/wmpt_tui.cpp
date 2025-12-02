@@ -423,6 +423,14 @@ namespace TUINC {
     // }
 
 
+    void __table::__helper_updateTablePtrInCells() {
+        for(size_t _y=0; _y<__tableOfCells.size(); _y++) {
+            for(size_t _x=0; _x<__tableOfCells.at(_y); _x++) {
+                __cell& cell = __tableOfCells.at(_y).at(_x);
+                cell.__tablePtr = this;
+            }
+        }
+    }
     std::vector<std::string> __table::__help__separateLines(std::string _toSep, std::string _delim) {
         if(_toSep.size()==0) throw std::runtime_error("__table::__help__separateLines(std::string, std::string) : _toSep value cannot be empty.");
         if(_delim.size()==0) throw std::runtime_error("__table::__help__separateLines(std::string, std::string) : _delim value cannot be empty.");
@@ -582,20 +590,6 @@ namespace TUINC {
         std::swap(__string_table, temporaryFinalString);
     }
 
-    int __table::__move__table_row_Y(size_t _yRowToMove, size_t _newY, Enum_setTableRowY_alreadyExists _existingMethod) {
-        if(_yRowToMove>=__tableOfCells.size()) throw std::runtime_error(std::string("__table::__set__table_row_Y(size_t, size_t, Enum_setTableRowY_alreadyExists) : row at [")+std::to_string(_yRowToMove)+"] doesn't exist.");
-        if(_yRowToMove==_newY) throw std::runtime_error(std::string("__table::__set__table_row_Y(size_t, size_t, Enum_setTableRowY_alreadyExists) : given row idx [")+std::to_string(_yRowToMove)+"] is the same as the new destination Y row.");
-
-
-        if(_newY>=__tableOfCells.size()) {
-            __tableOfCells.insert(__tableOfCells.end(), _newY-__tableOfCells.size()+1, std::vector<__cell>(__tableOfCells.at(0).size(), {}));
-            std::swap(__tableOfCells.back(), __tableOfCells.at(_yRowToMove));
-        }
-
-        return 0;
-    }
-
-
     __table::__table(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
         this->operator=(_matrixInput);
         
@@ -604,21 +598,57 @@ namespace TUINC {
     __table::__table() {
 
     }
-    __table::__table(const __table& _toCopy): __tableOfCells(_toCopy.__tableOfCells) {
-
+    __table::__table(const __table& _toCopy): 
+        __tableOfCells(_toCopy.__tableOfCells), __dimSize_table(_toCopy.__dimSize_table), __size_columnWidths(_toCopy.__size_columnWidths), __size_rowHeights(_toCopy.__size_rowHeights), __string_table(_toCopy.__string_table),
+        __scalMethod_columns(_toCopy.__scalMethod_columns), __scalMethod_rows(_toCopy.__scalMethod_rows), __rowSeparator(_toCopy.__rowSeparator),
+        __delimiter_columns(_toCopy.__delimiter_columns), __delimiter_rows(_toCopy.__delimiter_rows), __borderSymb_column(_toCopy.__borderSymb_column), __borderSymb_row(_toCopy.__borderSymb_row)
+    {
+        this->__helper_updateTablePtrInCells();
+        
+        
+        
     }
-    __table::__table(__table&& _toMove): __tableOfCells(_toMove.__tableOfCells) {
+    __table::__table(__table&& _toMove):
+        __tableOfCells(std::move(_toMove.__tableOfCells)), __dimSize_table(std::move(_toMove.__dimSize_table)), __size_columnWidths(std::move(_toMove.__size_columnWidths)), __size_rowHeights(std::move(_toMove.__size_rowHeights)), __string_table(std::move(_toMove.__string_table)),
+        __scalMethod_columns(std::move(_toMove.__scalMethod_columns)), __scalMethod_rows(std::move(_toMove.__scalMethod_rows)), __rowSeparator(std::move(_toMove.__rowSeparator)),
+        __delimiter_columns(std::move(_toMove.__delimiter_columns)), __delimiter_rows(std::move(_toMove.__delimiter_rows)), __borderSymb_column(std::move(_toMove.__borderSymb_column)), __borderSymb_row(std::move(_toMove.__borderSymb_row))
+    {
+        this->__helper_updateTablePtrInCells();
         
     }
     __table::~__table() {
 
     }
     __table& __table::operator=(const __table& _toCopy) {
-        __tableOfCells = _toCopy.__tableOfCells;
+        __tableOfCells  = _toCopy.__tableOfCells;
+        __dimSize_table = _toCopy.__dimSize_table;
+        __size_columnWidths = _toCopy.__size_columnWidths; 
+        __size_rowHeights   = _toCopy.__size_rowHeights;
+        __string_table  = _toCopy.__string_table;
+        __scalMethod_columns    = _toCopy.__scalMethod_columns;
+        __scalMethod_rows   = _toCopy.__scalMethod_rows;
+        __rowSeparator  = _toCopy.__rowSeparator;
+        __delimiter_columns = _toCopy.__delimiter_columns;
+        __delimiter_rows    = _toCopy.__delimiter_rows;
+        __borderSymb_column = _toCopy.__borderSymb_column;
+        __borderSymb_row    = _toCopy.__borderSymb_row;
+        
     }
     __table& __table::operator=(__table&& _toMove) {
         std::swap(__tableOfCells, _toMove.__tableOfCells);
-
+        std::swap(__tableOfCells, _toCopy.__tableOfCells);
+        std::swap(__dimSize_table, _toCopy.__dimSize_table);
+        std::swap(__size_columnWidths, _toCopy.__size_columnWidths); 
+        std::swap(__size_rowHeights, _toCopy.__size_rowHeights);
+        std::swap(__string_table, _toCopy.__string_table);
+        std::swap(__scalMethod_columns, _toCopy.__scalMethod_columns);
+        std::swap(__scalMethod_rows, _toCopy.__scalMethod_rows);
+        std::swap(__rowSeparator,  _toCopy.__rowSeparator);
+        std::swap(__delimiter_columns, _toCopy.__delimiter_columns);
+        std::swap(__delimiter_rows, _toCopy.__delimiter_rows);
+        std::swap(__borderSymb_column, _toCopy.__borderSymb_column);
+        std::swap(__borderSymb_row,  _toCopy.__borderSymb_row);
+        
     }
     __table& __table::operator=(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
         Pos2d<int>  limMatrix_min(0, 0);
