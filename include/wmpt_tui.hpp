@@ -224,7 +224,7 @@ namespace TUINC {
     // };
 
 
-    enum style_axisCellScalingMethod {
+    enum class style_axisCellScalingMethod {
         cellWidth,      // scale every column accordingly to their longest cell and likely go out of bounds or vice-versa to the TUI menu screen width.
         fitMenuAxis    // scale every column so they fit within the menu's axis evenly. Can cause clipping of text between column delimiters.
     };

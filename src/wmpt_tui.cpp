@@ -425,7 +425,7 @@ namespace TUINC {
 
     void __table::__helper_updateTablePtrInCells() {
         for(size_t _y=0; _y<__tableOfCells.size(); _y++) {
-            for(size_t _x=0; _x<__tableOfCells.at(_y); _x++) {
+            for(size_t _x=0; _x<__tableOfCells.at(_y).size(); _x++) {
                 __cell& cell = __tableOfCells.at(_y).at(_x);
                 cell.__tablePtr = this;
             }
@@ -636,18 +636,18 @@ namespace TUINC {
     }
     __table& __table::operator=(__table&& _toMove) {
         std::swap(__tableOfCells, _toMove.__tableOfCells);
-        std::swap(__tableOfCells, _toCopy.__tableOfCells);
-        std::swap(__dimSize_table, _toCopy.__dimSize_table);
-        std::swap(__size_columnWidths, _toCopy.__size_columnWidths); 
-        std::swap(__size_rowHeights, _toCopy.__size_rowHeights);
-        std::swap(__string_table, _toCopy.__string_table);
-        std::swap(__scalMethod_columns, _toCopy.__scalMethod_columns);
-        std::swap(__scalMethod_rows, _toCopy.__scalMethod_rows);
-        std::swap(__rowSeparator,  _toCopy.__rowSeparator);
-        std::swap(__delimiter_columns, _toCopy.__delimiter_columns);
-        std::swap(__delimiter_rows, _toCopy.__delimiter_rows);
-        std::swap(__borderSymb_column, _toCopy.__borderSymb_column);
-        std::swap(__borderSymb_row,  _toCopy.__borderSymb_row);
+        std::swap(__tableOfCells, _toMove.__tableOfCells);
+        std::swap(__dimSize_table, _toMove.__dimSize_table);
+        std::swap(__size_columnWidths, _toMove.__size_columnWidths); 
+        std::swap(__size_rowHeights, _toMove.__size_rowHeights);
+        std::swap(__string_table, _toMove.__string_table);
+        std::swap(__scalMethod_columns, _toMove.__scalMethod_columns);
+        std::swap(__scalMethod_rows, _toMove.__scalMethod_rows);
+        std::swap(__rowSeparator,  _toMove.__rowSeparator);
+        std::swap(__delimiter_columns, _toMove.__delimiter_columns);
+        std::swap(__delimiter_rows, _toMove.__delimiter_rows);
+        std::swap(__borderSymb_column, _toMove.__borderSymb_column);
+        std::swap(__borderSymb_row,  _toMove.__borderSymb_row);
         
     }
     __table& __table::operator=(std::initializer_list<std::initializer_list<__cell>> _matrixInput) {
@@ -707,22 +707,30 @@ namespace TUINC {
             lineCountedPos.y++;
         }
 
-        
+        this->__helper_updateTablePtrInCells();
         
         return *this;
     }
     
     std::vector<__cell>& __table::operator[](size_t _i) {
-        
+        return __tableOfCells[_i];
     }
     std::vector<__cell>  __table::__table::operator[](size_t _i) const {
-
+        return __tableOfCells[_i];
     }
     std::vector<__cell>& __table::at(size_t _i) {
+        if(__tableOfCells.size()==0)        throw std::runtime_error("at(size_t) : table is empty of cells.");
+        if(_i>=__tableOfCells.size())       throw std::runtime_error("at(size_t) : _i argument is bigger than existing rows in table.");
+        
 
+        return __tableOfCells.at(_i);
     }
     std::vector<__cell>  __table::at(size_t _i) const {
+        if(__tableOfCells.size()==0)        throw std::runtime_error("at(size_t) const : table is empty of cells.");
+        if(_i>=__tableOfCells.size())       throw std::runtime_error("at(size_t) const : _i argument is bigger than existing rows in table.");
+        
 
+        return __tableOfCells.at(_i);
     }
     // __table_row  at(size_t _i) const;
 
