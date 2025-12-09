@@ -49,7 +49,8 @@ namespace TUINC {
     enum cell_types {
         null    = 0,
         text    = 1,
-        function= 2
+        function= 2,
+        menuPtr = 3
     };
 
     struct cell_singleTempHolder {
@@ -65,6 +66,9 @@ namespace TUINC {
     struct cellTypeContent_function {
 
     };
+    struct cellTypeContent_menuPtr {
+        
+    };
 
     class  cell {
         private:
@@ -76,38 +80,37 @@ namespace TUINC {
 
         std::string     text;
         type_cellFunc   function;
+        menu*           menuPtr;
+        
 
-        cellTypeContent_null     cellContent_null;
-        cellTypeContent_text     cellContent_text;
-        cellTypeContent_function cellContent_function;
+        cellTypeContent_null        cellContent_null;
+        cellTypeContent_text        cellContent_text;
+        cellTypeContent_function    cellContent_function;
+        cellTypeContent_menuPtr     cellContent_menuPtr;
 
         bool isDefined__pos{false};
         bool isDefined__text{false};
         bool isDefined__function{false};
-
-        // bool __isDefinedcellContent_null{false};
-        // bool __isDefinedcellContent_text{false};
-        // bool __isDefinedcellContent_function{false};
+        bool isDefined__menuPtr{false}; //this way of checking definition is currently used just in case it's changed from pointer later on.'
 
         bool isModified__tablePtr{true};
         bool isModified__cellType{true};
         bool isModified__pos{true};
         bool isModified__text{true};
         bool isModified__function{true};
-
-        // int __setModified_cellInTableRow();
-
+        bool isModified__menuPtr{true};
+        
         void cell_resetModificationFlag();
 
         friend class table;
 
         public:
     
-        //cell() = delete; //?
         
         cell(cell_types _cellType=cell_types::null);
         cell(std::string _text, cell_types _cellType=cell_types::text);
         cell(std::string _text, type_cellFunc _func, cell_types _cellType=cell_types::function);
+        cell(std::string _text, menu* _menuPtr, cell_types _cellType=cell_types::menuPtr);
         
         cell(const cell& _toCopy);
         cell(cell&& _toMove);
@@ -121,22 +124,30 @@ namespace TUINC {
         int set_pos(Pos2d<int> _pos);
         int set_text(std::string _text);
         int set_function(type_cellFunc _func);
+        int set_menuPtr(menu* menuPtr);
+        
         int setContent_null(cellTypeContent_null _newContent);
         int setContent_text(cellTypeContent_text _newContent);
         int setContent_function(cellTypeContent_function _newContent);
+        int setContent_menuPtr(cellTypeContent_menuPtr _newContent);
+
 
         void change_type(cell_types _newType);
         void change_type(cell_types _newType, std::string _text);
         void change_type(cell_types _newType, std::string _text, type_cellFunc _func);
         void change_type(cell_types _newType, type_cellFunc _func);
+        void change_type(cell_types _newType, std::string _text, menu* _menuPtr);
+        void change_type(cell_types _newType, menu* _menuPtr);
 
         table*          get_tablePtr() const;
         Pos2d<int>      get_pos() const;
         std::string     get_text() const;
         type_cellFunc   get_function() const;
-        cellTypeContent_null  get_cellContent_null() const;
-        cellTypeContent_text  get_cellContent_text() const;
+        menu*           get_menuPtr() const;
+        cellTypeContent_null    get_cellContent_null() const;
+        cellTypeContent_text    get_cellContent_text() const;
         cellTypeContent_function  get_cellContent_function() const;
+        cellTypeContent_menuPtr get_cellContent_menuPtr() const;
         cell_types get_type() const;
 
         bool isModified();
@@ -144,53 +155,9 @@ namespace TUINC {
         bool isModified_pos();
         bool isModified_text();
         bool isModified_function();
+        bool isModified_menuPtr();
         
     };
-
-    // class   table_row {
-    //     private:
-    //     table* tablePtr{nullptr};
-    //     bool __isDefinedtable_yRow{false};
-    //     size_t table_yRow;
-    //     bool isModified__tablePtr{true};
-    //     std::vector<bool> __isModifiedcells;
-    //     std::vector<cell>& tableCellRow;
-    //     friend class cell;
-    //     friend class table;
-    //     /**
-    //      * @brief Called by table to reset the modification flags of the cells stored in this class
-    //      * 
-    //      */
-    //     void __resetModificationFlag();
-    //     /**
-    //      * @brief Used by cell's stored in this row to flag their respective boolean value for "isModified" as true.
-    //      * 
-    //      * @param _cellPtrToFlag 
-    //      */
-    //     void __set_cell_isModified(cell* _cellPtrToFlag);
-    //     enum class Enum_checkCells_whenIncorrect {
-    //         perform_correction,
-    //         throw_exception
-    //     };
-    //     /// check every cell for the coordinate
-    //     void __checkCells(Enum_checkCells_whenIncorrect _operation=Enum_checkCells_whenIncorrect::perform_correction);
-    //     public:
-    //     table_row(std::vector<cell>& _table_row);
-    //     table_row() = delete;
-    //     table_row(const table_row& _toCopy) = delete; //copy constructor not allowed
-    //     table_row(table_row&& _toMove);
-    //     ~table_row();
-    //     table_row& operator=(const table_row& _toCopy) = delete;
-    //     table_row& operator=(table_row&& _toMove);
-    //     cell& operator[](size_t _i);
-    //     cell  operator[](size_t _i) const;
-    //     cell& at(size_t _i);
-    //     cell  at(size_t _i) const;
-    //     int set_tablePtr(table* _tablePtr); // private friend method from `table`?
-    //     table* get_tablePtr();
-    //     size_t size();
-    //     bool isModified(int _i=-1);
-    // };
 
 
     enum class style_axisCellScalingMethod {
@@ -198,7 +165,7 @@ namespace TUINC {
         fitMenuAxis    // scale every column so they fit within the menu's axis evenly. Can cause clipping of text between column delimiters.
     };
     
-    class   table {
+    class table {
         protected:
         /**
          * access index: [row][column] ([y][x])
@@ -279,7 +246,10 @@ namespace TUINC {
 
     };
 
-
+    /**
+     * A user defiend type that holds the info of the menu of the current menu window consisting of table and cell user defiend type.
+     * can be called from cell type.
+     */
     class menu {
         private:
 

@@ -154,12 +154,16 @@ namespace TUINC {
     cell::cell(std::string _text, type_cellFunc _func, cell_types _cellType): cellType(_cellType), text(_text), function(_func), isDefined__text(true), isDefined__function(true) {
 
     }
+    cell::cell(std::string _text, menu* _menuPtr, cell_types _cellType=cell_types::menuPtr): cellType(_cellType), text(_text), menuPtr(_menuPtr), isDefined__text(true), isDefined__menuPtr(true) {
+        
+    }
 
     cell::cell(const cell& _toCopy): cellType(_toCopy.cellType) {
         tablePtr = _toCopy.tablePtr;
         if(_toCopy.isDefined__pos) pos = _toCopy.pos;
         if(_toCopy.isDefined__text) text = _toCopy.text;
         if(_toCopy.isDefined__function) function = _toCopy.function;
+        if(_toCopy.isDefined__menuPtr) menuPtr = _toCopy.menuPtr;
         // if(_toCopy.__isDefinedcellContent_null) cellContent_null = _toCopy.cellContent_null;
         // if(_toCopy.__isDefinedcellContent_text) cellContent_text = _toCopy.cellContent_text;
         // if(_toCopy.__isDefinedcellContent_function) cellContent_function = _toCopy.cellContent_function;
@@ -170,6 +174,7 @@ namespace TUINC {
         if(_toMove.isDefined__pos) std::swap(pos, _toMove.pos);
         if(_toMove.isDefined__text) std::swap(text, _toMove.text);
         if(_toMove.isDefined__function) std::swap(function, _toMove.function);
+        if(_toMove.isDefined__menuPtr) std::swap(menuPtr, _toMove.menuPtr);
         // if(_toMove.__isDefinedcellContent_null) std::swap(cellContent_null, _toMove.cellContent_null);
         // if(_toMove.__isDefinedcellContent_text) std::swap(cellContent_text, _toMove.cellContent_text);
         // if(_toMove.__isDefinedcellContent_function) std::swap(cellContent_function,  _toMove.cellContent_function);
@@ -184,6 +189,7 @@ namespace TUINC {
         if(_toCopy.isDefined__pos) pos = _toCopy.pos;
         if(_toCopy.isDefined__text) text = _toCopy.text;
         if(_toCopy.isDefined__function) function = _toCopy.function;
+        if(_toCopy.isDefined__menuPtr) menuPtr = _toCopy.menuPtr;
         // if(_toCopy.__isDefinedcellContent_null) cellContent_null = _toCopy.cellContent_null;
         // if(_toCopy.__isDefinedcellContent_text) cellContent_text = _toCopy.cellContent_text;
         // if(_toCopy.__isDefinedcellContent_function) cellContent_function = _toCopy.cellContent_function;
@@ -195,6 +201,7 @@ namespace TUINC {
         if(_toMove.isDefined__pos) std::swap(pos, _toMove.pos);
         if(_toMove.isDefined__text) std::swap(text, _toMove.text);
         if(_toMove.isDefined__function) std::swap(function, _toMove.function);
+        if(_toMove.isDefined__menuPtr) std::swap(menuPtr, _toMove.menuPtr);
         // if(_toMove.__isDefinedcellContent_null) std::swap(cellContent_null, _toMove.cellContent_null);
         // if(_toMove.__isDefinedcellContent_text) std::swap(cellContent_text, _toMove.cellContent_text);
         // if(_toMove.__isDefinedcellContent_function) std::swap(cellContent_function,  _toMove.cellContent_function);
@@ -209,8 +216,14 @@ namespace TUINC {
                 function(tablePtr);
             }
             break;
+        case cell_types::menuPtr:
+            if(!isDefined__menuPtr) { throw std::runtime_error("ERROR: TUINC::cell::call() : a call menuPtr has not been defined."); }
+            else {
+                menuPtr->Driver();
+            }
+            break;
         default:
-            throw std::runtime_error("ERROR: TUINC::cell::call() : call() member called without the cell type being a function.");
+            throw std::runtime_error("ERROR: TUINC::cell::call() : call() member called without the cell type being a callable type.");
             break;
         }
     }
@@ -239,6 +252,12 @@ namespace TUINC {
         isModified__function = true;
         return 0;
     }
+    int cell::set_menuPtr(menu* _menuPtr) {
+        menuPtr = _menuPtr;
+        isDefined__menuPtr = true;
+        isModified__menuPtr = true;
+        return 0;
+    }
     int cell::setContent_null(cellTypeContent_null _newContent) {
         cellContent_null = _newContent;
         // __isDefinedcellContent_null = true;
@@ -256,6 +275,10 @@ namespace TUINC {
         // __isDefinedcellContent_function = true;
 
         return 0;
+    }
+    int cell::setContent_menuPtr(cellTypeContent_menuPtr _newContent) {
+        cellContent_menuPtr = _newContent;
+        
     }
     void cell::change_type(cell_types _newType) {
         cellType = _newType;
@@ -276,6 +299,16 @@ namespace TUINC {
         function = _func;
         isModified__function = true;
     }
+    void cell::change_type(cell_types _newType, std::string _text, menu* _menuPtr) {
+        this->change_type(_newType, _text);
+        menuPtr = _menuPtr;
+        isModified__menuPtr = true;
+    }
+    void cell::change_type(cell_types _newType, menu* _menuPtr) {
+        this->change_type(_newtype);
+        menuPtr = _menuPtr;
+        isModified__menuPtr = true;
+    }
 
     table*        cell::get_tablePtr() const {
         return tablePtr;
@@ -292,6 +325,10 @@ namespace TUINC {
         if(!isDefined__function) throw std::runtime_error("cell::get_function() const : member called when function has not been defined.");
         return function;
     }
+    menu*           cell::get_menuPtr() const {
+        if(!isDefined__menuPtr) throw std::runtime_error("cell::get_menuPtr() const : member called when menu* has not been defined.");
+        return menuPtr;
+    }
     cellTypeContent_null  cell::get_cellContent_null() const {
         // if(!__isDefinedcellContent_null) throw std::runtime_error("cell::get_cellContent_null() const : member has been called when cellContent for null has not been defined.");
         return cellContent_null;
@@ -303,6 +340,9 @@ namespace TUINC {
     cellTypeContent_function  cell::get_cellContent_function() const {
         // if(!__isDefinedcellContent_function) throw std::runtime_error("cell::get_cellContent_function() const : member has been called when cellContent for function has not been defined.");
         return cellContent_function;
+    }
+    cellTypeContent_menuPtr cell::get_cellContent_menuPtr() const {
+        return cellContent_menuPtr;
     }
     cell_types cell::get_type() const {
         return cellType;
@@ -330,98 +370,11 @@ namespace TUINC {
     bool cell::isModified_function() {
         return isModified__function;
     }
+    bool cell::isModified_menuPtr() {
+        return isModified__menuPtr;
+    }
 
     
-    // table_row::table_row(std::vector<cell>& _table_row): tableCellRow(_table_row) {
-    // }
-    // // table_row::table_row(const table_row& _toCopy) {
-    // //     tableCellRow =_toCopy.__tableCellRow;
-    // // }
-    // table_row::table_row(__table_row&& _toMove): tableCellRow(std::move(_toMove.__tableCellRow)) {
-    // }
-    // table_row::~__table_row() {
-    // }
-    // //__table_row& table_row::operator=(const table_row& _toCopy) {
-    // //}
-    // table_row& table_row::operator=(__table_row&& _toMove) {
-    //     std::swap(__tableCellRow, _toMove.__tableCellRow);
-    // }
-    // cell& table_row::operator[](size_t _i) {
-    //     return tableCellRow[_i];
-    // }
-    // cell  table_row::operator[](size_t _i) const {
-    //     return tableCellRow[_i];
-    // }
-    // cell& table_row::at(size_t _i) {
-    //     return tableCellRow.at(_i);
-    // }
-    // cell table_row::at(size_t _i) const  {
-    //     return tableCellRow.at(_i);
-    // }
-    // int table_row::set_tablePtr(__table* _tablePtr) {
-    //     tablePtr = _tablePtr;
-    //     isModified__tablePtr = true;
-    //     return 0;
-    // };
-    // table* table_row::get_tablePtr() {
-    //     return tablePtr;
-    // }
-    // size_t table_row::size() {
-    //     return tableCellRow.size();
-    // }
-    // void table_row::__resetModificationFlag() {
-    //     for(size_t _i=0; _i<__isModifiedcells.size(); _i++) {
-    //         tableCellRow.at(_i).cell_resetModificationFlag();
-    //         __isModifiedcells.at(_i) = false;
-    //     }
-    // }
-    // void table_row::__set_cell_isModified(cell* _cellPtrToFlag) {
-    //     if(!_cellPtrToFlag) throw std::runtime_error("__table_row::__set_cell_isModified(_cell*) : pointer argument for cell cannot be nullptr.");
-    //     bool cellFound = false;
-    //     for(size_t _i=0; _i<__tableCellRow.size(); _i++) {
-    //         if(&__tableCellRow.at(_i)==_cellPtrToFlag) {
-    //             __isModifiedcells.at(_i) = true;
-    //             cellFound = true;
-    //             break;
-    //         }
-    //     }
-    //     if(!cellFound) throw std::runtime_error("__table_row::__set_cell_isModified(_cell*) : invalid pointer argument. Given cell address doesn't exist in this row as a stored cell.");
-    // }
-    // void table_row::__checkCells(Enum_checkCells_whenIncorrect _operation) {
-    //     for(size_t _i=0; _i<__tableCellRow.size(); _i++) {
-    //         auto cell = tableCellRow.at(_i);
-    //         auto currCellPos = cell.get_pos();
-    //         if(currCellPos.x!=_i || (__isDefined__table_yRow? currCellPos.y!=__table_yRow : true)) {
-    //             switch (_operation) {
-    //             case Enum_checkCells_whenIncorrect::perform_correction:
-    //                 cell.set_pos({_i, (__isDefined__table_yRow? table_yRow : currCellPos.y)});
-    //                 break;
-    //             case Enum_checkCells_whenIncorrect::throw_exception:
-    //                 throw std::runtime_error(std::string("__table_row::checkCells(Enum_checkCells_whenIncorrect) : incorrect pos value of cell at [i]:")+std::to_string(_i));
-    //                 break;
-    //             default:
-    //                 throw std::runtime_error(std::string("__table_row::checkCells(Enum_checkCells_whenIncorrect) : invalid enum value at [i]:")+std::to_string(_i));
-    //                 break;
-    //             }
-    //         }
-    //     }
-    // }
-    // bool table_row::isModified(int _i) {
-    //     if(_i>=__isModifiedcells.size()) throw std::out_of_range(std::string("__table_row::isModified(int) : input value of ")+std::to_string(_i)+"is out of range "+std::to_string(__isModifiedcells.size()));
-    //     else if(_i<-1) throw std::runtime_error("__table_row::isModified(int) : invalid negative value.");
-    //     bool isModif = false;
-    //     if(_i>-1) isModif = __isModifiedcells.at(_i);
-    //     else {
-    //         for(bool _var : __isModifiedcells) {
-    //             if(_var) {
-    //                 isModif = true;
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     return isModif;
-    // }
-
 
     void table::helper_updateTablePtrInCells() {
         for(size_t _y=0; _y<tableOfCells.size(); _y++) {
