@@ -20,6 +20,8 @@
 
 namespace TUINC {
 
+    /// ---------- custom independant library stuff ---------
+    
     enum Results {
         Success,
         ThreadInitialisationFailure,
@@ -37,42 +39,9 @@ namespace TUINC {
         
     };
 
-    std::string __str_printBuffer;
-    // std::string __str_printBuffer_trackedOffers;
-    struct TrackItemOffers {
-        PriceTracker::TrackItem trackItem;
-        std::vector<PriceTracker::ItemOffer> trackOffers;
-    };
-    /**
-     * A std::map with TrackID std::string as key and a custom struct holding PriceTracker::TrackItem and std::vector<PriceTracker::ItemOffer> as value.
-     * 
-     */
-    std::map<std::string, TrackItemOffers> TrackingItemsOffers;
-    std::mutex __mtx_access_TrackingItemsOffers;
-
-    std::atomic<char> settingTUI__charColumnDelim{'|'};
-
-    std::atomic<int> settingTUI__charWidth_itemName{15};
-    std::atomic<int> settingTUI__charWidth_trackingRank{3};
-    std::atomic<int> settingTUI__charWidth_trackingPrice{3};
-    std::atomic<int> settingTUI__charWidth_currrentBestPrice{3};
-    
-
-    extern PriceTracker::callbackType_trackedAllOffers callbackFunc_trackedAllOffers;
-    extern PriceTracker::callbackType_trackedFound callbackFunc_offersFound;
-
-
-    extern PriceTracker::threadClass threadObj_PriceTracker;
-
-
-    Results Initialise();
-
-    int Drive();
-
-    
     class __cell;
-    // class __table_row;
     class __table;
+    class __menu;
 
     using __type_cellFunc = std::function<void(__table*)>;
 
@@ -84,7 +53,7 @@ namespace TUINC {
     };
 
     struct __cell_singleTempHolder {
-
+        
     };
 
     struct __cellTypeContent_null {
@@ -309,6 +278,51 @@ namespace TUINC {
         Results call(Pos2d<int> _pos);
 
     };
+
+
+    class __menu {
+        private:
+
+        public:
+        
+    };
+
+
+    /// ---------- Project specific functions and variables ----------
+
+    
+    std::string __str_printBuffer;
+    
+    struct TrackItemOffers {
+        PriceTracker::TrackItem trackItem;
+        std::vector<PriceTracker::ItemOffer> trackOffers;
+    };
+    /**
+     * A std::map with TrackID std::string as key and a custom struct holding PriceTracker::TrackItem and std::vector<PriceTracker::ItemOffer> as value.
+     * 
+     */
+    std::map<std::string, TrackItemOffers> TrackingItemsOffers;
+    std::mutex __mtx_access_TrackingItemsOffers;
+
+    std::atomic<char> settingTUI__charColumnDelim{'|'};
+
+    std::atomic<int> settingTUI__charWidth_itemName{15};
+    std::atomic<int> settingTUI__charWidth_trackingRank{3};
+    std::atomic<int> settingTUI__charWidth_trackingPrice{3};
+    std::atomic<int> settingTUI__charWidth_currrentBestPrice{3};
+    
+
+    extern PriceTracker::callbackType_trackedAllOffers callbackFunc_trackedAllOffers;
+    extern PriceTracker::callbackType_trackedFound callbackFunc_offersFound;
+
+
+    extern PriceTracker::threadClass threadObj_PriceTracker;
+
+
+    Results Initialise();
+
+    int Drive();
+
 
 };
 
