@@ -228,7 +228,7 @@ namespace TUINC {
         }
     }
 
-    int cell::set_tablePtr(__table* _tablePtr) {
+    int cell::set_tablePtr(table* _tablePtr) {
         tablePtr = _tablePtr;
         isModified__tablePtr = true;
         return 0;
@@ -305,7 +305,7 @@ namespace TUINC {
         isModified__menuPtr = true;
     }
     void cell::change_type(cell_types _newType, menu* _menuPtr) {
-        this->change_type(_newtype);
+        this->change_type(_newType);
         menuPtr = _menuPtr;
         isModified__menuPtr = true;
     }
@@ -374,7 +374,65 @@ namespace TUINC {
         return isModified__menuPtr;
     }
 
-    
+
+    void table::func_loadInitialiserCellMatrix(std::initializer_list<std::initializer_list<cell>> _matrixInput) {
+        Pos2d<int>  limMatrix_min(0, 0);
+        Pos2d<int>  limMatrix_max(0, 0);
+        Pos2d<bool> limDefined_min(false, false);
+        Pos2d<bool> limDefined_max(false, false);
+        Pos2d<int>  lineCountedDim(0, _matrixInput.size());
+        for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
+            for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
+                if(itr_cell->isDefined__pos) {
+                    if(itr_cell->pos.x > limMatrix_max.x || !limDefined_max.x) {
+                        limMatrix_max.x = itr_cell->pos.x;
+                        limDefined_max.x = true;
+                    }
+                    else if(itr_cell->pos.x < limMatrix_min.x || !limDefined_min.x) {
+                        limMatrix_min.x = itr_cell->pos.x;
+                        limDefined_min.x = true;
+                    }
+                    if(itr_cell->pos.y > limMatrix_max.y || !limDefined_max.y) {
+                        limMatrix_max.y = itr_cell->pos.y;
+                        limDefined_max.y = true;
+                    }
+                    else if(itr_cell->pos.y < limMatrix_min.y || !limDefined_min.y) {
+                        limMatrix_min.y = itr_cell->pos.y;
+                        limDefined_min.y = true;
+                    }
+
+                }
+            }
+            if(itr_row->size() > lineCountedDim.x) lineCountedDim.x = itr_row->size();
+        }
+        if(limDefined_min.x) assert(limDefined_max.x && " how the fuck is minimum defined but not maximum for x");
+        if(limDefined_min.y) assert(limDefined_max.y && " how the fuck is minimum defined but not maximum for y");
+        if(lineCountedDim.x > limMatrix_max.x-limMatrix_min.x) { //the defined limits are smaller than the existing number of cells for a row
+            limMatrix_max.x = lineCountedDim.x;
+        }
+        if(lineCountedDim.y > limMatrix_max.y-limMatrix_min.y) {
+            limMatrix_max.y = lineCountedDim.y;
+        }
+
+        tableOfCells = std::vector<std::vector<cell>>(limMatrix_max.y-limMatrix_min.y, std::vector<cell>(limMatrix_max.x-limMatrix_min.x, {cell_types::null}));
+        
+        Pos2d<int> lineCountedPos = limMatrix_min;
+        for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
+            lineCountedPos.x = limMatrix_min.x;
+            for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
+                if(!itr_cell->cellType==cell_types::null) {
+                    if(itr_cell->isDefined__pos) tableOfCells[itr_cell->pos.y][itr_cell->pos.x] = *itr_cell;
+                    else {
+                        if(tableOfCells[lineCountedPos.y][lineCountedPos.x].cellType==cell_types::null) {
+                            tableOfCells[itr_cell->pos.y][itr_cell->pos.x] = *itr_cell;
+                        }
+                    }
+                }
+            }
+            lineCountedPos.y++;
+        }
+
+    }
 
     void table::helper_updateTablePtrInCells() {
         for(size_t _y=0; _y<tableOfCells.size(); _y++) {
@@ -400,7 +458,7 @@ namespace TUINC {
 
         return returVec;
     }
-    void table::updatestring_table() {
+    void table::update__string_table() {
         
         if(tableOfCells.size()==0) {
             return;
@@ -409,7 +467,7 @@ namespace TUINC {
             return;
         }
 
-
+        
         if(dimSize_table.x==-1 || dimSize_table.y==-1) {
             Pos2d<int> dimSize_terminal{0, 0};
             
@@ -544,8 +602,8 @@ namespace TUINC {
     }
 
     table::table(std::initializer_list<std::initializer_list<cell>> _matrixInput) {
-        this->operator=(_matrixInput);
-        
+        this->func_loadInitialiserCellMatrix(_matrixInput);        
+    
     }
 
     table::table() {
@@ -561,7 +619,7 @@ namespace TUINC {
         
         
     }
-    table::table(__table&& _toMove):
+    table::table(table&& _toMove):
         tableOfCells(std::move(_toMove.tableOfCells)), dimSize_table(std::move(_toMove.dimSize_table)), size_columnWidths(std::move(_toMove.size_columnWidths)), size_rowHeights(std::move(_toMove.size_rowHeights)), string_table(std::move(_toMove.string_table)),
         scalMethod_columns(std::move(_toMove.scalMethod_columns)), scalMethod_rows(std::move(_toMove.scalMethod_rows)), rowSeparator(std::move(_toMove.rowSeparator)),
         delimiter_columns(std::move(_toMove.delimiter_columns)), delimiter_rows(std::move(_toMove.delimiter_rows)), borderSymb_column(std::move(_toMove.borderSymb_column)), borderSymb_row(std::move(_toMove.borderSymb_row))
@@ -587,7 +645,7 @@ namespace TUINC {
         borderSymb_row    = _toCopy.borderSymb_row;
         
     }
-    table& table::operator=(__table&& _toMove) {
+    table& table::operator=(table&& _toMove) {
         std::swap(tableOfCells, _toMove.tableOfCells);
         std::swap(tableOfCells, _toMove.tableOfCells);
         std::swap(dimSize_table, _toMove.dimSize_table);
@@ -604,61 +662,7 @@ namespace TUINC {
         
     }
     table& table::operator=(std::initializer_list<std::initializer_list<cell>> _matrixInput) {
-        Pos2d<int>  limMatrix_min(0, 0);
-        Pos2d<int>  limMatrix_max(0, 0);
-        Pos2d<bool> limDefined_min(false, false);
-        Pos2d<bool> limDefined_max(false, false);
-        Pos2d<int>  lineCountedDim(0, _matrixInput.size());
-        for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
-            for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
-                if(itr_cell->isDefined__pos) {
-                    if(itr_cell->pos.x > limMatrix_max.x || !limDefined_max.x) {
-                        limMatrix_max.x = itr_cell->pos.x;
-                        limDefined_max.x = true;
-                    }
-                    else if(itr_cell->pos.x < limMatrix_min.x || !limDefined_min.x) {
-                        limMatrix_min.x = itr_cell->pos.x;
-                        limDefined_min.x = true;
-                    }
-                    if(itr_cell->pos.y > limMatrix_max.y || !limDefined_max.y) {
-                        limMatrix_max.y = itr_cell->pos.y;
-                        limDefined_max.y = true;
-                    }
-                    else if(itr_cell->pos.y < limMatrix_min.y || !limDefined_min.y) {
-                        limMatrix_min.y = itr_cell->pos.y;
-                        limDefined_min.y = true;
-                    }
-
-                }
-            }
-            if(itr_row->size() > lineCountedDim.x) lineCountedDim.x = itr_row->size();
-        }
-        if(limDefined_min.x) assert(limDefined_max.x && " how the fuck is minimum defined but not maximum for x");
-        if(limDefined_min.y) assert(limDefined_max.y && " how the fuck is minimum defined but not maximum for y");
-        if(lineCountedDim.x > limMatrix_max.x-limMatrix_min.x) { //the defined limits are smaller than the existing number of cells for a row
-            limMatrix_max.x = lineCountedDim.x;
-        }
-        if(lineCountedDim.y > limMatrix_max.y-limMatrix_min.y) {
-            limMatrix_max.y = lineCountedDim.y;
-        }
-
-        tableOfCells = std::vector<std::vector<cell>>(limMatrix_max.y-limMatrix_min.y, std::vector<cell>(limMatrix_max.x-limMatrix_min.x, {cell_types::null}));
-        
-        Pos2d<int> lineCountedPos = limMatrix_min;
-        for(auto itr_row=_matrixInput.begin(); itr_row!=_matrixInput.end(); ++itr_row) {
-            lineCountedPos.x = limMatrix_min.x;
-            for(auto itr_cell=itr_row->begin(); itr_cell!=itr_row->end(); ++itr_cell) {
-                if(!itr_cell->cellType==cell_types::null) {
-                    if(itr_cell->isDefined__pos) tableOfCells[itr_cell->pos.y][itr_cell->pos.x] = *itr_cell;
-                    else {
-                        if(tableOfCells[lineCountedPos.y][lineCountedPos.x].cellType==cell_types::null) {
-                            tableOfCells[itr_cell->pos.y][itr_cell->pos.x] = *itr_cell;
-                        }
-                    }
-                }
-            }
-            lineCountedPos.y++;
-        }
+        this->func_loadInitialiserCellMatrix(_matrixInput);
 
         this->helper_updateTablePtrInCells();
         
@@ -687,17 +691,17 @@ namespace TUINC {
     }
     // table_row  at(size_t _i) const;
 
-    cell& table::cell(size_t _x, size_t _y) {
+    cell& table::get_cell(size_t _x, size_t _y) {
         return tableOfCells.at(_x).at(_y);
     }
-    cell table::cell(size_t _x, size_t _y) const {
-        return cell(_x, _y);
+    cell table::get_cell(size_t _x, size_t _y) const {
+        return get_cell(_x, _y);
     }
-    cell& table::cell(Pos2d<int> _pos) {
-        return cell(_pos.x, _pos.y);
+    cell& table::get_cell(Pos2d<int> _pos) {
+        return get_cell(_pos.x, _pos.y);
     }
-    cell table::cell(Pos2d<int> _pos) const {
-        return cell(_pos);
+    cell table::get_cell(Pos2d<int> _pos) const {
+        return get_cell(_pos);
     }
 
     size_t table::rows() {
@@ -763,7 +767,41 @@ namespace TUINC {
     }
 
     
+
+    menu::menu(std::initializer_list<std::initializer_list<cell>> _matrixInput) {
+        this->func_loadInitialiserCellMatrix(_matrixInput),
+
+
+    }
+    menu::menu(const table& _tableToCopy) {
+
+    }
+    menu::menu(table&& _tableToMove) {
+
+    }
     
-    
+    menu::menu() {
+        
+    }
+    menu::menu(const menu& _toCopy) {
+
+    }
+    menu::menu(menu&& _toMove) {
+        
+    }
+    menu::~menu() {
+        
+    }
+
+    menu& menu::operator=(const menu& _toCopy) {
+
+    }
+    menu& menu::operator=(menu&& _toMove) {
+
+    }
+
+    void menu::Driver() {
+
+    }
     
 };

@@ -41,6 +41,11 @@ void TUI_drawBG();
 
 using json = nlohmann::json;
 
+/**
+ * @brief Requests a json string from Warframe Market api and parses it into `type_AllItems` object
+ * 
+ * @return type_AllItems object containing the parsed item info.
+ */
 type_AllItems LoadAllItems();
 
 

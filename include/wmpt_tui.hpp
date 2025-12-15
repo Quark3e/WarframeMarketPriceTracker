@@ -103,6 +103,8 @@ namespace TUINC {
         void cell_resetModificationFlag();
 
         friend class table;
+        friend class menu;
+
 
         public:
     
@@ -177,7 +179,7 @@ namespace TUINC {
         std::vector<std::vector<cell>> tableOfCells;
         
         /**
-         * Character-size dimensions of table. -1 means use dimensions of terminal
+         * Character-size max dimensions of table. -1 means use dimensions of terminal
          * 
          */
         Pos2d<int> dimSize_table{-1, -1};
@@ -187,9 +189,16 @@ namespace TUINC {
         /// @brief Maximum character-size heights of each row
         std::vector<size_t> size_rowHeights;
 
+        
+        void func_loadInitialiserCellMatrix(std::initializer_list<std::initializer_list<cell>> _matrixInput);
+
         void helper_updateTablePtrInCells();
         
         std::vector<std::string> help__separateLines(std::string _toSep, std::string _delim="\n");
+        /**
+         * 
+         * 
+         */
         void update__string_table();
         /// @brief Final string containing the table in full
         std::string string_table{""};
@@ -223,10 +232,10 @@ namespace TUINC {
         std::vector<cell>& at(size_t _i);
         std::vector<cell>  at(size_t _i) const;
 
-        cell& cell(size_t _x, size_t _y);
-        cell  cell(size_t _x, size_t _y) const;
-        cell& cell(Pos2d<int> _pos);
-        cell  cell(Pos2d<int> _pos) const;
+        cell& get_cell(size_t _x, size_t _y);
+        cell  get_cell(size_t _x, size_t _y) const;
+        cell& get_cell(Pos2d<int> _pos);
+        cell  get_cell(Pos2d<int> _pos) const;
 
         size_t rows();
         size_t columns();
@@ -250,10 +259,17 @@ namespace TUINC {
      * A user defiend type that holds the info of the menu of the current menu window consisting of table and cell user defiend type.
      * can be called from cell type.
      */
-    class menu {
+    class menu: public table {
         private:
 
+        Pos2d<int> pos_selectedCell;
+        
+
         public:
+
+        menu(std::initializer_list<std::initializer_list<cell>> _matrixInput);
+        menu(const table& _tableToCopy);
+        menu(table&& _tableToCopy);
         
         menu();
         menu(const menu& _toCopy);

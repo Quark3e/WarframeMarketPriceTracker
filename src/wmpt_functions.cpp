@@ -82,6 +82,7 @@ type_AllItems LoadAllItems() {
     json parsedJson;
     type_AllItems parsedItems;
 
+    /// Request a json string from the server containing info of all the items and load that string onto json object
     try {
         PriceTracker::apiCallTimer CallTimer;
         std::string getStr = CallTimer.call(urlString);
@@ -93,6 +94,7 @@ type_AllItems LoadAllItems() {
         exit(1);
     }
     
+    /// Load json object into dedicated `type_AllItems` object
     try {
         
         for(auto itr=parsedJson["data"].begin(); itr!=parsedJson["data"].end(); ++itr) {
