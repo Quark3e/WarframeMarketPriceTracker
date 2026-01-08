@@ -39,23 +39,24 @@ namespace TUINC {
         
     };
 
-    class cell;
-    class table;
-    class menu;
+    namespace core {
+        class Cell;
+        class Table;
+        class Menu;
+    };
 
-    using type_cellFunc = std::function<void(table*)>;
+    using type_cellFunc = std::function<void(core::Table*)>;
 
 
-    enum cell_types {
+    enum class cell_types {
         null    = 0,
         text    = 1,
         function= 2,
-        menuPtr = 3
+        menu    = 3
     };
 
-    struct cell_singleTempHolder {
-        
-    };
+    // struct cell_singleTempHolder {
+    // };
 
     struct cellTypeContent_null {
 
@@ -66,108 +67,108 @@ namespace TUINC {
     struct cellTypeContent_function {
 
     };
-    struct cellTypeContent_menuPtr {
+    struct cellTypeContent_menu {
         
     };
 
-    class  cell {
+    class  core::Cell {
         private:
         
-        table*    tablePtr{nullptr};
+        Table*  tablePtr{nullptr};
 
         cell_types      cellType{null};
         Pos2d<int>      pos;
 
         std::string     text;
         type_cellFunc   function;
-        menu*           menuPtr;
+        Menu            menu;      //cell stores a menu object entirely in itself
         
 
         cellTypeContent_null        cellContent_null;
         cellTypeContent_text        cellContent_text;
         cellTypeContent_function    cellContent_function;
-        cellTypeContent_menuPtr     cellContent_menuPtr;
+        cellTypeContent_menu     cellContent_menu;
 
         bool isDefined__pos{false};
         bool isDefined__text{false};
         bool isDefined__function{false};
-        bool isDefined__menuPtr{false}; //this way of checking definition is currently used just in case it's changed from pointer later on.'
+        bool isDefined__menu{false}; //this way of checking definition is currently used just in case it's changed from pointer later on.'
 
         bool isModified__tablePtr{true};
         bool isModified__cellType{true};
         bool isModified__pos{true};
         bool isModified__text{true};
         bool isModified__function{true};
-        bool isModified__menuPtr{true};
+        bool isModified__menu{true};
         
         void cell_resetModificationFlag();
 
-        friend class table;
-        friend class menu;
+        friend class Table;
+        friend class Menu;
 
 
         public:
     
         
-        cell(cell_types _cellType=cell_types::null);
-        cell(std::string _text, cell_types _cellType=cell_types::text);
-        cell(std::string _text, type_cellFunc _func, cell_types _cellType=cell_types::function);
-        cell(std::string _text, menu* _menuPtr, cell_types _cellType=cell_types::menuPtr);
+        Cell(cell_types _cellType=cell_types::null);
+        Cell(std::string _text, cell_types _cellType=cell_types::text);
+        Cell(std::string _text, type_cellFunc _func, cell_types _cellType=cell_types::function);
+        Cell(std::string _text, Menu&& _menu, cell_types _cellType=cell_types::menu);
         
-        cell(const cell& _toCopy);
-        cell(cell&& _toMove);
-        ~cell();
-        cell& operator=(const cell& _toCopy);
-        cell& operator=(cell&& _toMove);
+        Cell(const Cell& _toCopy);
+        Cell(Cell&& _toMove);
+        ~Cell();
+        Cell& operator=(const Cell& _toCopy);
+        Cell& operator=(Cell&& _toMove);
         
         void call();
         
-        int set_tablePtr(table* _tablePtr);
+        int set_tablePtr(Table* _tablePtr);
         int set_pos(Pos2d<int> _pos);
         int set_text(std::string _text);
         int set_function(type_cellFunc _func);
-        int set_menuPtr(menu* menuPtr);
+        int set_menu(Menu&& _menu);
         
         int setContent_null(cellTypeContent_null _newContent);
         int setContent_text(cellTypeContent_text _newContent);
         int setContent_function(cellTypeContent_function _newContent);
-        int setContent_menuPtr(cellTypeContent_menuPtr _newContent);
+        int setContent_menu(cellTypeContent_menu _newContent);
 
 
         void change_type(cell_types _newType);
         void change_type(cell_types _newType, std::string _text);
         void change_type(cell_types _newType, std::string _text, type_cellFunc _func);
         void change_type(cell_types _newType, type_cellFunc _func);
-        void change_type(cell_types _newType, std::string _text, menu* _menuPtr);
-        void change_type(cell_types _newType, menu* _menuPtr);
+        void change_type(cell_types _newType, std::string _text, Menu&& _menu);
+        void change_type(cell_types _newType, Menu&& _menu);
 
-        table*          get_tablePtr() const;
+        Table*          get_tablePtr() const;
         Pos2d<int>      get_pos() const;
         std::string     get_text() const;
         type_cellFunc   get_function() const;
-        menu*           get_menuPtr() const;
+        Menu            get_menu() const;
         cellTypeContent_null    get_cellContent_null() const;
         cellTypeContent_text    get_cellContent_text() const;
-        cellTypeContent_function  get_cellContent_function() const;
-        cellTypeContent_menuPtr get_cellContent_menuPtr() const;
-        cell_types get_type() const;
+        cellTypeContent_function    get_cellContent_function() const;
+        cellTypeContent_menu    get_cellContent_menu() const;
+        cell_types  get_type() const;
 
         bool isModified();
         bool isModified_tablePtr();
         bool isModified_pos();
         bool isModified_text();
         bool isModified_function();
-        bool isModified_menuPtr();
+        bool isModified_menu();
         
     };
 
 
     enum class style_axisCellScalingMethod {
-        cellWidth,      // scale every column accordingly to their longest cell and likely go out of bounds or vice-versa to the TUI menu screen width.
-        fitMenuAxis    // scale every column so they fit within the menu's axis evenly. Can cause clipping of text between column delimiters.
+        cellWidth,      // scale every column accordingly to their longest core::cell and likely go out of bounds or vice-versa to the TUI core::menu screen width.
+        fitMenuAxis    // scale every column so they fit within the core::menu's axis evenly. Can cause clipping of text between column delimiters.
     };
     
-    class table {
+    class core::Table {
         protected:
         /**
          * access index: [row][column] ([y][x])
@@ -176,32 +177,60 @@ namespace TUINC {
          *      {[1, 0], [1, 1], [1, 2]}
          *  }
          */
-        std::vector<std::vector<cell>> tableOfCells;
+        std::vector<std::vector<Cell>> tableOfCells;
         
         /**
-         * Character-size max dimensions of table. -1 means use dimensions of terminal
+         * Character-size max dimensions of core::table. -1 means use dimensions of terminal
          * 
          */
         Pos2d<int> dimSize_table{-1, -1};
 
         /// @brief Maximum character-size widths of each column
-        std::vector<size_t> size_columnWidths;
+        std::vector<size_t> maxSize_columnWidths;
         /// @brief Maximum character-size heights of each row
-        std::vector<size_t> size_rowHeights;
+        std::vector<size_t> maxSize_rowHeights;
 
         
-        void func_loadInitialiserCellMatrix(std::initializer_list<std::initializer_list<cell>> _matrixInput);
+        /// \brief Loads a 2D matrix of cells from an initializer list.
+        /// 
+        /// This function populates the internal cell matrix using the provided
+        /// nested initializer list. Each inner initializer list represents a row
+        /// of cells in the matrix.
+        /// 
+        /// \param _matrixInput A nested initializer list of Cell objects, where each
+        ///                     inner list represents a row in the matrix.
+        /// 
+        /// \note The dimensions of the matrix are determined by the input dimensions.
+        ///       Ensure that all rows have consistent column counts for proper matrix structure.
+        void func_loadInitialiserCellMatrix(std::initializer_list<std::initializer_list<Cell>> _matrixInput);
 
+        /// @brief Updates the table pointer stored in all table cells.
+        /// 
+        /// This function iterates through all cells in the table and updates their
+        /// internal references to point to the current table object. This is typically
+        /// called after table restructuring operations to ensure cells maintain valid
+        /// pointers to their parent table.
         void helper_updateTablePtrInCells();
         
+        /// @brief Separates a string into multiple lines based on a delimiter.
+        /// @param _toSep The string to be separated into lines.
+        /// @param _delim The delimiter used to separate lines. Defaults to newline character "\n".
+        /// @return A vector of strings, each representing a separated line.
         std::vector<std::string> help__separateLines(std::string _toSep, std::string _delim="\n");
+        
+        /// @brief Updates the string table with current data
+        /// @details Refreshes and synchronizes the string table contents to reflect
+        ///          the latest state of the application data
+        void update__string_table();
+        /// @brief Final string containing the core::table in full
+        std::string string_table{""};
         /**
+         * string vector that represents the rows for the printable table.
          * 
+         * [row][column]
          * 
          */
-        void update__string_table();
-        /// @brief Final string containing the table in full
-        std::string string_table{""};
+        std::vector<std::string> printableStringVector;
 
         style_axisCellScalingMethod scalMethod_columns{style_axisCellScalingMethod::fitMenuAxis};
         style_axisCellScalingMethod scalMethod_rows{style_axisCellScalingMethod::fitMenuAxis};
@@ -217,31 +246,31 @@ namespace TUINC {
 
         public:
 
-        table(std::initializer_list<std::initializer_list<cell>> _matrixInput);
+        Table(std::initializer_list<std::initializer_list<Cell>> _matrixInput);
 
-        table();
-        table(const table& _toCopy);
-        table(table&& _toMove);
-        ~table();
-        table& operator=(const table& _toCopy);
-        table& operator=(table&& _toMove);
-        table& operator=(std::initializer_list<std::initializer_list<cell>> _matrixInput);
+        Table();
+        Table(const Table& _toCopy);
+        Table(Table&& _toMove);
+        ~Table();
+        Table& operator=(const Table& _toCopy);
+        Table& operator=(Table&& _toMove);
+        Table& operator=(std::initializer_list<std::initializer_list<Cell>> _matrixInput);
         
-        std::vector<cell>& operator[](size_t _i);
-        std::vector<cell>  operator[](size_t _i) const;
-        std::vector<cell>& at(size_t _i);
-        std::vector<cell>  at(size_t _i) const;
+        std::vector<Cell>& operator[](size_t _i);
+        std::vector<Cell>  operator[](size_t _i) const;
+        std::vector<Cell>& at(size_t _i);
+        std::vector<Cell>  at(size_t _i) const;
 
-        cell& get_cell(size_t _x, size_t _y);
-        cell  get_cell(size_t _x, size_t _y) const;
-        cell& get_cell(Pos2d<int> _pos);
-        cell  get_cell(Pos2d<int> _pos) const;
+        Cell& get_cell(size_t _x, size_t _y);
+        Cell  get_cell(size_t _x, size_t _y) const;
+        Cell& get_cell(Pos2d<int> _pos);
+        Cell  get_cell(Pos2d<int> _pos) const;
 
         size_t rows();
         size_t columns();
         size_t size();
         
-        std::vector<cell> continuous(bool _includeNullCells=true);
+        std::vector<Cell> continuous(bool _includeNullCells=true);
 
         // int addCell(size_t _x, size_t _y);
         // int addCell(Pos2d<int> _pos);
@@ -256,27 +285,29 @@ namespace TUINC {
     };
 
     /**
-     * A user defiend type that holds the info of the menu of the current menu window consisting of table and cell user defiend type.
-     * can be called from cell type.
+     * A user defiend type that holds the info of the core::menu of the current core::menu window consisting of core::table and core::cell user defiend type.
+     * can be called from core::cell type.
      */
-    class menu: public table {
+    class core::Menu: public Table {
         private:
 
         Pos2d<int> pos_selectedCell;
         
+        
+        void helper_drawSelectedCell(Pos2d<int> _selectPos);
 
         public:
 
-        menu(std::initializer_list<std::initializer_list<cell>> _matrixInput);
-        menu(const table& _tableToCopy);
-        menu(table&& _tableToCopy);
+        Menu(std::initializer_list<std::initializer_list<Cell>> _matrixInput);
+        Menu(const Table& _tableToCopy);
+        Menu(Table&& _tableToCopy);
         
-        menu();
-        menu(const menu& _toCopy);
-        menu(menu&& _toMove);
-        ~menu();
-        menu& operator=(const menu& _toCopy);
-        menu& operator=(menu&& _toMove);
+        Menu();
+        Menu(const Menu& _toCopy);
+        Menu(Menu&& _toMove);
+        ~Menu();
+        Menu& operator=(const Menu& _toCopy);
+        Menu& operator=(Menu&& _toMove);
             
         void Driver();
     

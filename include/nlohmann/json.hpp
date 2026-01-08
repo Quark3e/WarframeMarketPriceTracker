@@ -3310,7 +3310,7 @@ struct Gen<T, 0>
 // `integer_sequence<int, 0, 1, ..., N-1>`, and is designed to be a drop-in
 // replacement for C++14's `std::make_integer_sequence`.
 template <typename T, T N>
-using make_integer_sequence = typename utility_internal::Gen<T, N>::type;
+using make_integer_sequence = typename utility_core::Gen<T, N>::type;
 
 // make_index_sequence
 //
