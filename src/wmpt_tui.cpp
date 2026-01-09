@@ -560,19 +560,19 @@ namespace TUINC {
         /// as in, change the current method for writing to the "final string" so that instead of creating a copy, edit the existing "string" container.
 
         /// check size of string vector against currently defined dimensions and update the string vetors' dimensions accordingly
-        Pos2d<int> diffCount(static_cast<int>(tableDimensions.x)-static_cast<int>(printableStringVector.at(0).size()), static_cast<int>(tableDimensions.y)-static_cast<int>(printableStringVector.size()));
+        Pos2d<int> diffCount(static_cast<int>(tableDimensions.x)-static_cast<int>(PrintableStringVectorMatrix.at(0).size()), static_cast<int>(tableDimensions.y)-static_cast<int>(PrintableStringVectorMatrix.size()));
         if(diffCount.y!=0) { /// update row count
             if(diffCount.y<0) { /// new tableDimensions.y is smaller than current size
-                auto itr_erasePos = printableStringVector.begin();
-                std::advance(itr_erasePos, static_cast<int>(printableStringVector.size())+diffCount.y);
-                printableStringVector.erase(itr_erasePos, printableStringVector.end());
+                auto itr_erasePos = PrintableStringVectorMatrix.begin();
+                std::advance(itr_erasePos, static_cast<int>(PrintableStringVectorMatrix.size())+diffCount.y);
+                PrintableStringVectorMatrix.erase(itr_erasePos, PrintableStringVectorMatrix.end());
             }
             else { /// new tableDimensions.y is bigger than current size
-                printableStringVector.insert(printableStringVector.end(), diffCount.y, std::string(printableStringVector.at(0).size(), ' '));
+                PrintableStringVectorMatrix.insert(PrintableStringVectorMatrix.end(), diffCount.y, std::string(PrintableStringVectorMatrix.at(0).size(), ' '));
             }
         }
         if(diffCount.x!=0) { /// update column count
-            for(auto itr_rowVec=printableStringVector.begin(); itr_rowVec!=printableStringVector.end(); ++itr_rowVec) {
+            for(auto itr_rowVec=PrintableStringVectorMatrix.begin(); itr_rowVec!=PrintableStringVectorMatrix.end(); ++itr_rowVec) {
                 if(diffCount.x<0) { /// new tableDimensions.x is smaller than current size
                     auto itr_erasePos = itr_rowVec->begin();
                     std::advance(itr_erasePos, static_cast<int>(itr_rowVec->size())+diffCount.x);
