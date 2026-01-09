@@ -204,6 +204,10 @@ namespace TUINC {
         ///       Ensure that all rows have consistent column counts for proper matrix structure.
         void func_loadInitialiserCellMatrix(std::initializer_list<std::initializer_list<Cell>> _matrixInput);
 
+        /// @brief  Get [y][x] matrix location to the first character for the given cell for the text in
+        ///         PrintableStringVectorMatrix.
+        Pos2d<size_t> helper_PSVmatrixLocator(Pos2d<size_t> _cellPos);
+        
         /// @brief Updates the table pointer stored in all table cells.
         /// 
         /// This function iterates through all cells in the table and updates their
@@ -230,7 +234,7 @@ namespace TUINC {
          * [row][column]
          * 
          */
-        std::vector<std::string> printableStringVector;
+        std::vector<std::string> PrintableStringVectorMatrix;
 
         style_axisCellScalingMethod scalMethod_columns{style_axisCellScalingMethod::fitMenuAxis};
         style_axisCellScalingMethod scalMethod_rows{style_axisCellScalingMethod::fitMenuAxis};
