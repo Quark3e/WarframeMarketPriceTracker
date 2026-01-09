@@ -584,9 +584,7 @@ namespace TUINC {
 
             }
         }
-        /// if an axis has had its size changed, update the internal string values such as border characters e.t.c accordingly to the size change
         
-
 
         // std::string temporaryFinalString = "";   
         if(borderSymb_row.size()>0) { /// If the border symbol for row isn't empty then create the top border/frame side
@@ -660,8 +658,12 @@ namespace TUINC {
             temporaryFinalString+=rowSeparator;
         }
         
+        /// Draw border/background symbols and related
 
-        std::swap(string_table, temporaryFinalString);
+
+        /// Draw text that ignores/goes-over border/delimiter symbols
+
+
     }
 
     core::Table::Table(std::initializer_list<std::initializer_list<Cell>> _matrixInput) {
