@@ -47,6 +47,11 @@ namespace TUINC {
 
     using type_cellFunc = std::function<void(core::Table*)>;
 
+    /// @brief Retrieves the current console window dimensions.
+    /// @return A Pos2d<size_t> object containing the console width and height.
+    /// @details This helper function queries the console window to determine its current
+    ///          size in terms of columns (width) and rows (height).
+    Pos2d<size_t> helper_getConsoleDimensions();
 
     enum class cell_types {
         null    = 0,
@@ -203,6 +208,9 @@ namespace TUINC {
         /// \note The dimensions of the matrix are determined by the input dimensions.
         ///       Ensure that all rows have consistent column counts for proper matrix structure.
         void func_loadInitialiserCellMatrix(std::initializer_list<std::initializer_list<Cell>> _matrixInput);
+
+
+        void update__maxSize_axisVectors();
 
         /// @brief  Get [y][x] matrix location to the first character for the given cell for the text in
         ///         PrintableStringVectorMatrix.

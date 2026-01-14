@@ -144,6 +144,16 @@ int TUINC::Drive() {
 
 namespace TUINC {
 
+    Pos2d<size_t> helper_getConsoleDimensions() {
+        Pos2d<size_t> console_dimensions(-1, -1);
+
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+        console_dimensions.x = csbi.srWindow.Right  - csbi.srWindow.Left    + 1;
+        console_dimensions.y = csbi.srWindow.Bottom - csbi.srWindow.Top     + 1;
+
+        return console_dimensions;
+    }
 
     core::Cell::Cell(cell_types _cellType): cellType(_cellType) {
 
@@ -434,50 +444,25 @@ namespace TUINC {
 
     }
 
-    void core::Table::helper_updateTablePtrInCells() {
-        /// Iterate through every cell in the table matrix and set their dedicated Table pointer to this tables's address
-        for(size_t _y=0; _y<tableOfCells.size(); _y++) {
-            for(size_t _x=0; _x<tableOfCells.at(_y).size(); _x++) {
-                Cell& cell = tableOfCells.at(_y).at(_x);
-                cell.tablePtr = this;
-            }
-        }
-    }
-    std::vector<std::string> core::Table::help__separateLines(std::string _toSep, std::string _delim) {
-        if(_toSep.size()==0) throw std::runtime_error("table::help__separateLines(std::string, std::string) : _toSep value cannot be empty.");
-        if(_delim.size()==0) throw std::runtime_error("table::help__separateLines(std::string, std::string) : _delim value cannot be empty.");
-        std::vector<std::string> returVec;
-        size_t ignPos = 0;
-        for(size_t _c=0; _c<_toSep.size()-_delim.size()+1; _c++) {
-            if(_toSep.substr(_c, _delim.size())==_delim) {
-                returVec.push_back(_toSep.substr(ignPos, _c-ignPos));
-                _c+=_delim.size();
-                ignPos = _c;
-            }
-        }
-        if(ignPos!=_toSep.size()) returVec.push_back(_toSep.substr(ignPos, std::string::npos));
-
-        return returVec;
-    }
-    void core::Table::update__string_table() {
+    void core::Table::update__maxSize_axisVectors() {
         
         /// If either of the axis in the cell matrix is empty, exit the function because there is nothing to update.
         if(tableOfCells.size()==0) {
-            return;
+            throw std::runtime_error("ERROR: void core::Table::update__maxSize_axisVectors() : tableOfCells.size()==0");
         }
         if(tableOfCells.at(0).size()==0) {
-            return;
+            throw std::runtime_error("ERROR: void core::Table::update__maxSize_axisVectors() : tableOfCells.at(0).size()==0");
         }
 
+        /// xy variable that holds the character-count axis dimensions of the table, i.e. how many characters wide/high
         Pos2d<int> tableDimensions(dimSize_table);
         if(dimSize_table.x==-1 || dimSize_table.y==-1) {
             Pos2d<int> dimSize_terminal{0, 0};
             
             /// NOTE: currently windows only: change/rewrite if implementing cross-platform
-            CONSOLE_SCREEN_BUFFER_INFO csbi;
-            GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-            if(dimSize_table.x==-1) tableDimensions.x = csbi.srWindow.Right     - csbi.srWindow.Left    + 1;
-            if(dimSize_table.y==-1) tableDimensions.y = csbi.srWindow.Bottom    - csbi.srWindow.Top     + 1;
+            auto consoleDims = helper_getConsoleDimensions();
+            if(dimSize_table.x==-1) tableDimensions.x = consoleDims.x;
+            if(dimSize_table.y==-1) tableDimensions.y = consoleDims.y;
         }
         
         /// Local containers holding the boggest size for that axis column/row
@@ -526,9 +511,6 @@ namespace TUINC {
                 }
             }
         }
-        this->maxSize_columnWidths  = maxSize_columns;
-        this->maxSize_rowHeights    = maxSize_rows;
-
         /**
          * If cellScaling method for columns/x-axis is fitMenuAxis then adjust the sizes for the cellSize values in maxSize_columnWidths to an evenly divided cell width,
          *  that takes into account borderSymb size.
@@ -555,11 +537,62 @@ namespace TUINC {
                 _el = (temp_cellHeight < 0? 0 : static_cast<size_t>(temp_cellHeight));
             }
         }
+        
+        this->maxSize_columnWidths  = maxSize_columns;
+        this->maxSize_rowHeights    = maxSize_rows;
+    }
+
+    Pos2d<size_t> core::Table::helper_PSVmatrixLocator(Pos2d<size_t> _cellPos) {
+        if(tableOfCells.size()==0) throw std::runtime_error("Pos2d<size_t> core::Table::helper_PSVmatrixLocator(Pos2d<size_t>) : tableOfCells.size()==0");
+        if(tableOfCells.at(0).size()==0) throw std::runtime_error("Pos2d<size_t> core::Table::helper_PSVmatrixLocator(Pos2d<size_t>) : tableOfCells.at(0).size()==0");
+    
+        
+    }
+    void core::Table::helper_updateTablePtrInCells() {
+        /// Iterate through every cell in the table matrix and set their dedicated Table pointer to this tables's address
+        for(size_t _y=0; _y<tableOfCells.size(); _y++) {
+            for(size_t _x=0; _x<tableOfCells.at(_y).size(); _x++) {
+                Cell& cell = tableOfCells.at(_y).at(_x);
+                cell.tablePtr = this;
+            }
+        }
+    }
+    std::vector<std::string> core::Table::help__separateLines(std::string _toSep, std::string _delim) {
+        if(_toSep.size()==0) throw std::runtime_error("table::help__separateLines(std::string, std::string) : _toSep value cannot be empty.");
+        if(_delim.size()==0) throw std::runtime_error("table::help__separateLines(std::string, std::string) : _delim value cannot be empty.");
+        std::vector<std::string> returVec;
+        size_t ignPos = 0;
+        for(size_t _c=0; _c<_toSep.size()-_delim.size()+1; _c++) {
+            if(_toSep.substr(_c, _delim.size())==_delim) {
+                returVec.push_back(_toSep.substr(ignPos, _c-ignPos));
+                _c+=_delim.size();
+                ignPos = _c;
+            }
+        }
+        if(ignPos!=_toSep.size()) returVec.push_back(_toSep.substr(ignPos, std::string::npos));
+
+        return returVec;
+    }
+    void core::Table::update__string_table() {
+        
+        this->update__maxSize_axisVectors();
+
+        
+        Pos2d<int> tableDimensions(dimSize_table);
+        if(dimSize_table.x==-1 || dimSize_table.y==-1) {
+            Pos2d<int> dimSize_terminal{0, 0};
+            
+            /// NOTE: currently windows only: change/rewrite if implementing cross-platform
+            auto consoleDims = helper_getConsoleDimensions();
+            if(dimSize_table.x==-1) tableDimensions.x = consoleDims.x;
+            if(dimSize_table.y==-1) tableDimensions.y = consoleDims.y;
+        }
+        
 
         /// NOTE! To-do: Add a modification check to each cell so all of this can be optimised and potentially avoided
         /// as in, change the current method for writing to the "final string" so that instead of creating a copy, edit the existing "string" container.
 
-        /// check size of string vector against currently defined dimensions and update the string vetors' dimensions accordingly
+        /// check size of string vector against currently defined dimensions and update the string vectors' dimensions accordingly
         Pos2d<int> diffCount(static_cast<int>(tableDimensions.x)-static_cast<int>(PrintableStringVectorMatrix.at(0).size()), static_cast<int>(tableDimensions.y)-static_cast<int>(PrintableStringVectorMatrix.size()));
         if(diffCount.y!=0) { /// update row count
             if(diffCount.y<0) { /// new tableDimensions.y is smaller than current size
@@ -585,6 +618,8 @@ namespace TUINC {
             }
         }
         
+
+        /// ----------------- REWRITE THE CONTENTS BELOW THIS TO BE UPDATES ---------------------------
 
         // std::string temporaryFinalString = "";   
         if(borderSymb_row.size()>0) { /// If the border symbol for row isn't empty then create the top border/frame side
