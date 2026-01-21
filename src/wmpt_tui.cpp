@@ -467,7 +467,7 @@ namespace TUINC {
         
         /// Local containers holding the boggest size for that axis column/row
         std::vector<size_t> maxSize_columns(tableOfCells.at(0).size(), 0);
-        std::vector<size_t> maxSize_rows(tableOfCells.size(), 1);
+        std::vector<size_t> maxSize_rows(tableOfCells.size(), 0);
         
         /// If any of the axis has a scalMethod that is cellWidth, go through every cell and get the maximum cell's width/height for that column/row.
         if(scalMethod_columns==style_axisCellScalingMethod::cellWidth || scalMethod_rows==style_axisCellScalingMethod::cellWidth) {
@@ -512,11 +512,11 @@ namespace TUINC {
             }
         }
         /**
-         * If cellScaling method for columns/x-axis is fitMenuAxis then adjust the sizes for the cellSize values in maxSize_columnWidths to an evenly divided cell width,
+         * If cellScaling method for columns/x-axis is fitMenuAxis_even then adjust the sizes for the cellSize values in maxSize_columnWidths to an evenly divided cell width,
          *  that takes into account borderSymb size.
          * 
          */
-        if(scalMethod_columns==style_axisCellScalingMethod::fitMenuAxis) {
+        if(scalMethod_columns==style_axisCellScalingMethod::fitMenuAxis_even) {
             /**
              * Cell width solved from evenly dividing the table width
              * 
@@ -527,11 +527,11 @@ namespace TUINC {
             }
         }
         /**
-         * If cellScaling method for rows/y-axis is fitMenuAxis then adjust the sizes for the cellSize values in maxSize_rowHeights to an evenly divided cell height,
+         * If cellScaling method for rows/y-axis is fitMenuAxis_even then adjust the sizes for the cellSize values in maxSize_rowHeights to an evenly divided cell height,
          *  that takes into account borderSymb size.
          * 
          */
-        if(scalMethod_rows==style_axisCellScalingMethod::fitMenuAxis) {
+        if(scalMethod_rows==style_axisCellScalingMethod::fitMenuAxis_even) {
             int temp_cellHeight = (tableDimensions.y-borderSymb_row.size()*2-(maxSize_rows.size()-1)*delimiter_rows.size())/maxSize_rows.size();
             for(auto& _el : maxSize_rows) {
                 _el = (temp_cellHeight < 0? 0 : static_cast<size_t>(temp_cellHeight));
@@ -546,6 +546,11 @@ namespace TUINC {
         if(tableOfCells.size()==0) throw std::runtime_error("Pos2d<size_t> core::Table::helper_PSVmatrixLocator(Pos2d<size_t>) : tableOfCells.size()==0");
         if(tableOfCells.at(0).size()==0) throw std::runtime_error("Pos2d<size_t> core::Table::helper_PSVmatrixLocator(Pos2d<size_t>) : tableOfCells.at(0).size()==0");
     
+        /**
+         * Using the currently defined maxSize_{axis label} size vectors, figure out the 2d matrix coordinate to the first char in the PRV-matrix (PrintableStringVectorMatrix)
+         * 
+         * 
+         */
         
     }
     void core::Table::helper_updateTablePtrInCells() {
@@ -592,7 +597,8 @@ namespace TUINC {
         /// NOTE! To-do: Add a modification check to each cell so all of this can be optimised and potentially avoided
         /// as in, change the current method for writing to the "final string" so that instead of creating a copy, edit the existing "string" container.
 
-        /// check size of string vector against currently defined dimensions and update the string vectors' dimensions accordingly
+        /// Check size of string vector against currently defined dimensions and
+        /// resize the main storage string vectors' (PSVmatrix) dimensions accordingly.
         Pos2d<int> diffCount(static_cast<int>(tableDimensions.x)-static_cast<int>(PrintableStringVectorMatrix.at(0).size()), static_cast<int>(tableDimensions.y)-static_cast<int>(PrintableStringVectorMatrix.size()));
         if(diffCount.y!=0) { /// update row count
             if(diffCount.y<0) { /// new tableDimensions.y is smaller than current size
@@ -620,6 +626,12 @@ namespace TUINC {
         
 
         /// ----------------- REWRITE THE CONTENTS BELOW THIS TO BE UPDATES ---------------------------
+        
+        /// Local cursorPos variable for editing the characters where .x is a std::strings character(column), .y is a std::vector's element (row)
+        /// NOTE: Start at 0. Need to index by 1 when the coordinates are used in ansii positions since they start at 1
+        Pos2d<int> cursorPos_edit(0, 0);
+        
+
 
         // std::string temporaryFinalString = "";   
         if(borderSymb_row.size()>0) { /// If the border symbol for row isn't empty then create the top border/frame side
@@ -627,9 +639,7 @@ namespace TUINC {
             if(temporaryFinalString.size() > tableDimensions.x) temporaryFinalString.erase(tableDimensions.x, std::string::npos);
             temporaryFinalString+=rowSeparator;
         }
-        /// Local cursorPos variable for editing the characters where .x is a std::strings character(column), .y is a std::vector's element (row)
-        /// NOTE: Start at 0. Need to index by 1 when the coordinates are used in ansii positions since they start at 1
-        Pos2d<int> cursorPos_editing(1, 1);
+        Pos2d<int> cursorPos_editing(0, 0);
         for(size_t _y=0; _y<maxSize_rows.size(); _y++) {
             for(size_t cellY=0; cellY<maxSize_rows.at(_y); cellY++) { /// Iterate over every line/y-value for this row height
                 temporaryFinalString+=borderSymb_column;
@@ -639,7 +649,7 @@ namespace TUINC {
                     auto cell = tableOfCells.at(_y).at(_x);
                     bool useText = false;
                     Pos2d<size_t> cellLim{maxSize_columns.at(_x), maxSize_rows.at(_y)};
-                    switch (cell.get_type()) {
+                    switch (cell.get_type()) { // check cell type to decide whether to use the text inside the cell (deprecated)
                         case cell_types::null:
                             temporaryFinalString+=std::string(cellLim.x, ' ');
                         case cell_types::text: {

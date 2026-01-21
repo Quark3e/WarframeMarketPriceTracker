@@ -169,8 +169,9 @@ namespace TUINC {
 
 
     enum class style_axisCellScalingMethod {
-        cellWidth,      // scale every column accordingly to their longest core::cell and likely go out of bounds or vice-versa to the TUI core::menu screen width.
-        fitMenuAxis    // scale every column so they fit within the core::menu's axis evenly. Can cause clipping of text between column delimiters.
+        cellWidth,      // scale every cell_axis_size accordingly to their longest core::cell and likely have the axis go out of bounds or vice-versa to the TUI core::menu screen width. NOTE: will not include axes with only null cells
+        fitMenuAxis_even,       // scale every cell_axis_size so they fit within the core::menu's axis evenly. Can cause clipping of text between column delimiters.
+        // fitMenuAXis_adjusted    // scale every cell_axis_size so they fit within the core::menu's axis accordingly to an ratio of the size of each cell for that axis.
     };
     
     class core::Table {
@@ -244,8 +245,8 @@ namespace TUINC {
          */
         std::vector<std::string> PrintableStringVectorMatrix;
 
-        style_axisCellScalingMethod scalMethod_columns{style_axisCellScalingMethod::fitMenuAxis};
-        style_axisCellScalingMethod scalMethod_rows{style_axisCellScalingMethod::fitMenuAxis};
+        style_axisCellScalingMethod scalMethod_columns{style_axisCellScalingMethod::fitMenuAxis_even};
+        style_axisCellScalingMethod scalMethod_rows{style_axisCellScalingMethod::fitMenuAxis_even};
 
         std::string delimiter_columns{"|"};
         std::string delimiter_rows{"-"};
