@@ -520,10 +520,11 @@ namespace TUINC {
             /**
              * Cell width solved from evenly dividing the table width
              * 
+             * size_of_cell = total_size_of_all_cells( width_of_table - symbol_size_of_borderColumn*2 - (number of column delimiters)*size_of_column_delimiter ) / number_of_cells
              */
-            int temp_cellWidth = (tableDimensions.x-borderSymb_column.size()*2-(maxSize_columns.size()-1)*delimiter_columns.size())/maxSize_columns.size();
+            int avgCellWidth = (tableDimensions.x-borderSymb_column.size()*2-(maxSize_columns.size()-1)*delimiter_columns.size())/maxSize_columns.size();
             for(auto& _el : maxSize_columns) {
-                _el = (temp_cellWidth < 0? 0 : static_cast<size_t>(temp_cellWidth));
+                _el = (avgCellWidth < 0? 0 : static_cast<size_t>(avgCellWidth));
             }
         }
         /**
@@ -532,9 +533,9 @@ namespace TUINC {
          * 
          */
         if(scalMethod_rows==style_axisCellScalingMethod::fitMenuAxis_even) {
-            int temp_cellHeight = (tableDimensions.y-borderSymb_row.size()*2-(maxSize_rows.size()-1)*delimiter_rows.size())/maxSize_rows.size();
+            int avgCellHeight = (tableDimensions.y-borderSymb_row.size()*2-(maxSize_rows.size()-1)*delimiter_rows.size())/maxSize_rows.size();
             for(auto& _el : maxSize_rows) {
-                _el = (temp_cellHeight < 0? 0 : static_cast<size_t>(temp_cellHeight));
+                _el = (avgCellHeight < 0? 0 : static_cast<size_t>(avgCellHeight));
             }
         }
         
