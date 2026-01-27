@@ -5,6 +5,7 @@
 
 #include "wintoastlib.h"
 #include <string>
+#include <cstring>
 #include <windows.h>
 
 using namespace WinToastLib;
@@ -155,17 +156,35 @@ namespace TUINC {
         return console_dimensions;
     }
 
+
+    std::vector<std::string> core::Cell::_helper_parseStringForNewlines(std::string _fullString) {
+        if(_fullString.size()==0) throw std::runtime_error("core::Cell::_helper_parseStringForNewlines(std::string) : input string argument cannot have a size of 0 (i.e. it cannot be an empty string)");
+
+        std::vector<std::string> _parsedString;
+
+        size_t newlinePos = _fullString.find('\n');
+        while(true) {
+            _parsedString.push_back(_fullString.substr(0, newlinePos));
+
+            if(newlinePos==std::string::npos) break;
+            _fullString.erase(0, newlinePos+1);
+            newlinePos = _fullString.find('\n');
+        }
+
+        return _parsedString;
+    }
+
     core::Cell::Cell(cell_types _cellType): cellType(_cellType) {
 
     }
-    core::Cell::Cell(std::string _text, cell_types _cellType): cellType(_cellType), text(_text), isDefined__text(true) {
-
+    core::Cell::Cell(std::string _text, cell_types _cellType): cellType(_cellType), isDefined__text(true) {
+        this->text = this->_helper_parseStringForNewlines(_text);
     }
-    core::Cell::Cell(std::string _text, type_cellFunc _func, cell_types _cellType): cellType(_cellType), text(_text), function(_func), isDefined__text(true), isDefined__function(true) {
-
+    core::Cell::Cell(std::string _text, type_cellFunc _func, cell_types _cellType): cellType(_cellType), function(_func), isDefined__text(true), isDefined__function(true) {
+        this->text = this->_helper_parseStringForNewlines(_text);
     }
-    core::Cell::Cell(std::string _text, Menu&& _menu, cell_types _cellType=cell_types::menu): cellType(_cellType), text(_text), menu(std::move(_menu)), isDefined__text(true), isDefined__menu(true) {
-        
+    core::Cell::Cell(std::string _text, Menu&& _menu, cell_types _cellType=cell_types::menu): cellType(_cellType), menu(std::move(_menu)), isDefined__text(true), isDefined__menu(true) {
+        this->text = this->_helper_parseStringForNewlines(_text);
     }
 
     core::Cell::Cell(const Cell& _toCopy): cellType(_toCopy.cellType) {
@@ -251,7 +270,7 @@ namespace TUINC {
         return 0;
     }
     int core::Cell::set_text(std::string _text) {
-        text = _text;
+        this->text = this->_helper_parseStringForNewlines(_text);
         isDefined__text = true;
         isModified__text = true;
         return 0;
@@ -296,7 +315,7 @@ namespace TUINC {
     }
     void core::Cell::change_type(cell_types _newType, std::string _text) {
         this->change_type(_newType);
-        text = _text;
+        this->text = this->_helper_parseStringForNewlines(_text);
         isModified__text = true;
     }
     void core::Cell::change_type(cell_types _newType, std::string _text, type_cellFunc _func) {
@@ -329,7 +348,9 @@ namespace TUINC {
     }
     std::string core::Cell::get_text() const {
         if(!isDefined__text) throw std::runtime_error("cell::get_text() const : member called when text has not been defined.");
-        return text;
+        std::string fullString = "";
+        for(auto str : this->text) fullString+=str;
+        return fullString;
     }
     type_cellFunc core::Cell::get_function() const {
         if(!isDefined__function) throw std::runtime_error("cell::get_function() const : member called when function has not been defined.");
@@ -522,7 +543,7 @@ namespace TUINC {
              * 
              * size_of_cell = total_size_of_all_cells( width_of_table - symbol_size_of_borderColumn*2 - (number of column delimiters)*size_of_column_delimiter ) / number_of_cells
              */
-            int avgCellWidth = (tableDimensions.x-borderSymb_column.size()*2-(maxSize_columns.size()-1)*delimiter_columns.size())/maxSize_columns.size();
+            int avgCellWidth = (tableDimensions.x-symb_border_column.size()*2-(maxSize_columns.size()-1)*symb_delimiter_columns.size())/maxSize_columns.size();
             for(auto& _el : maxSize_columns) {
                 _el = (avgCellWidth < 0? 0 : static_cast<size_t>(avgCellWidth));
             }
@@ -533,7 +554,7 @@ namespace TUINC {
          * 
          */
         if(scalMethod_rows==style_axisCellScalingMethod::fitMenuAxis_even) {
-            int avgCellHeight = (tableDimensions.y-borderSymb_row.size()*2-(maxSize_rows.size()-1)*delimiter_rows.size())/maxSize_rows.size();
+            int avgCellHeight = (tableDimensions.y-symb_border_row.size()*2-(maxSize_rows.size()-1)*symb_delimiter_rows.size())/maxSize_rows.size();
             for(auto& _el : maxSize_rows) {
                 _el = (avgCellHeight < 0? 0 : static_cast<size_t>(avgCellHeight));
             }
@@ -552,7 +573,21 @@ namespace TUINC {
          * 
          * 
          */
+
+        Pos2d<size_t> posInMatrix(0, 0);
+        posInMatrix.y+=symb_border_row.size();
+        posInMatrix.y+=symb_delimiter_rows.size()*_cellPos.y;
+        for(size_t _i=0; _i<_cellPos.y; _i++) {
+            if(maxSize_rowHeights.at(_i)!=0) posInMatrix.y+=maxSize_rowHeights.at(_i);
+        }
         
+        posInMatrix.x+=symb_border_column.size();
+        posInMatrix.x+=symb_delimiter_columns.size()*_cellPos.x;
+        for(size_t _i=0; _i<_cellPos.x; _i++) {
+            if(maxSize_columnWidths.at(_i)!=0) posInMatrix.x+=maxSize_columnWidths.at(_i);
+        }
+
+        return posInMatrix;
     }
     void core::Table::helper_updateTablePtrInCells() {
         /// Iterate through every cell in the table matrix and set their dedicated Table pointer to this tables's address
@@ -598,8 +633,8 @@ namespace TUINC {
         /// NOTE! To-do: Add a modification check to each cell so all of this can be optimised and potentially avoided
         /// as in, change the current method for writing to the "final string" so that instead of creating a copy, edit the existing "string" container.
 
-        /// Check size of string vector against currently defined dimensions and
-        /// resize the main storage string vectors' (PSVmatrix) dimensions accordingly.
+        /// Resizing of PSV matrix (PrintableStringVectorMatrix)_
+        ///     check new size of tableDimensions (which gets updated either by member functions or resizing of console/terminal window) and update the PSVmatrix accordingly
         Pos2d<int> diffCount(static_cast<int>(tableDimensions.x)-static_cast<int>(PrintableStringVectorMatrix.at(0).size()), static_cast<int>(tableDimensions.y)-static_cast<int>(PrintableStringVectorMatrix.size()));
         if(diffCount.y!=0) { /// update row count
             if(diffCount.y<0) { /// new tableDimensions.y is smaller than current size
@@ -630,85 +665,93 @@ namespace TUINC {
         
         /// Local cursorPos variable for editing the characters where .x is a std::strings character(column), .y is a std::vector's element (row)
         /// NOTE: Start at 0. Need to index by 1 when the coordinates are used in ansii positions since they start at 1
-        Pos2d<int> cursorPos_edit(0, 0);
-        
+        Pos2d<int> cursorPos_edit(symb_border_column.size(), symb_border_row.size());
 
+        for(size_t _cellMat_y=0; _cellMat_y<tableOfCells.size(); _cellMat_y++) { /// iterate over each row of cells
 
-        // std::string temporaryFinalString = "";   
-        if(borderSymb_row.size()>0) { /// If the border symbol for row isn't empty then create the top border/frame side
-            for(;temporaryFinalString.size()<tableDimensions.x; temporaryFinalString+=borderSymb_row);
-            if(temporaryFinalString.size() > tableDimensions.x) temporaryFinalString.erase(tableDimensions.x, std::string::npos);
-            temporaryFinalString+=rowSeparator;
-        }
-        Pos2d<int> cursorPos_editing(0, 0);
-        for(size_t _y=0; _y<maxSize_rows.size(); _y++) {
-            for(size_t cellY=0; cellY<maxSize_rows.at(_y); cellY++) { /// Iterate over every line/y-value for this row height
-                temporaryFinalString+=borderSymb_column;
-                cursorPos_editing.y = _y+cellY;
-                for(size_t _x=0; _x<maxSize_columns.size(); _x++) { /// Iterate over every cell's cellY line for this row
-                    cursorPos_editing.x = _x;
-                    auto cell = tableOfCells.at(_y).at(_x);
-                    bool useText = false;
-                    Pos2d<size_t> cellLim{maxSize_columns.at(_x), maxSize_rows.at(_y)};
-                    switch (cell.get_type()) { // check cell type to decide whether to use the text inside the cell (deprecated)
-                        case cell_types::null:
-                            temporaryFinalString+=std::string(cellLim.x, ' ');
-                        case cell_types::text: {
-                                if(!cell.get_cellContent_text().rule_followDelimiter) { /// If rule_followDelimiter is set to false then this text will be overlayed later on on top of everything.
-                                    temporaryFinalString+=std::string(cellLim.x, ' ');
-                                }
-                                else {
-                                    useText = true;
-                                    break;
-                                }
+            for(size_t _row_y=0; _row_y<maxSize_rowHeights.at(_cellMat_y); _row_y++) { /// iterate over each row/character-height of each cell-row
+
+                cursorPos_edit.x=1; /// set start indexing pos at new row's first character after border column
+                for(size_t _cellMat_x=0; _cellMat_x<tableOfCells.at(0).size(); _cellMat_x++) { /// iterate over each column of cells
+                    core::Cell& cellRef = tableOfCells.at(_cellMat_y).at(_cellMat_x);
+
+                    if(cellRef.isModified__text && cellRef.cellContent_text.rule_followDelimiter) {
+                        if(cellRef.text.size()>_row_y) {
+                            std::string textLine = cellRef.text.at(_row_y);
+                            if(textLine.size()<=maxSize_columnWidths.at(_cellMat_x)) {
+                                textLine+=std::string(maxSize_columnWidths.at(_cellMat_x)-textLine.size(), ' ');
                             }
-                            break;
-                        case cell_types::function: {
-                                useText = true;
-                                break;
+                            else {
+                                textLine.erase(maxSize_columnWidths.at(_cellMat_x));
                             }
-                            break;
-                        default:
-                            assert(false && "Something is wrong where an undefined enum value was entered [2].");
-                            break;
+                            assert(textLine.size()==maxSize_columnWidths.at(_cellMat_x));
+                            
+                            memcpy(&PrintableStringVectorMatrix.at(cursorPos_edit.y).at(cursorPos_edit.x), &textLine.at(0), maxSize_columnWidths.at(_cellMat_x));
+                        }
+                        else {
+                            std::string tempStr_emptyCellLine(maxSize_columnWidths.at(_cellMat_x), ' ');
+                            memcpy(&PrintableStringVectorMatrix.at(cursorPos_edit.y).at(cursorPos_edit.x), &tempStr_emptyCellLine.at(0), maxSize_columnWidths.at(_cellMat_x));
+                        }
                     }
-                    if(useText) {
-                        std::vector<std::string> cells_rows = help__separateLines(cell.get_text(), "\n");
-                         /// if this cell's row count is bigger than the current y-value for this row height, use the string, otherwise the row count is bigger than the number of rows
-                         ///  that this cell's text has
-                        std::string cell_line = (cells_rows.size()>cellY? cells_rows.at(cellY) : "");
-                        /// To the final string, append only the section that is allowed by the cellLim.x
-                        temporaryFinalString+=cell_line.substr(0, cellLim.x);
-                        int cellSpace = cellLim.x-cell_line.size();
-                        if(cellSpace>0) temporaryFinalString+=std::string(cellSpace, ' ');
-                    }
-                    if(_x+1<maxSize_columns.size()) temporaryFinalString+=delimiter_columns;
+                    
+                    cursorPos_edit.x+=maxSize_columnWidths.at(_cellMat_x);
+                    cursorPos_edit.x+=symb_delimiter_columns.size(); /// skip over PSV matrix's column delimiter
                 }
-                temporaryFinalString+=borderSymb_column+rowSeparator;
+
             }
-            if(_y+1<maxSize_rows.size()) { /// If current _y value isn't the last row, create a line of delimiter_rows string to separate rows
-                temporaryFinalString+=borderSymb_column;
-                for(size_t _x=0; _x<maxSize_columns.size(); _x++) {
-                    std::string _temp="";
-                    for(; _temp.size()<maxSize_columns.at(_x); _temp+=delimiter_rows);
-                    if(_temp.size()>maxSize_columns.at(_x)) _temp.erase(maxSize_columns.at(_x), std::string::npos);
-                    temporaryFinalString+=_temp;
-                    if(_x+1<maxSize_columns.size()) temporaryFinalString+=delimiter_columns;
-                }
-                temporaryFinalString+=borderSymb_column+rowSeparator;
-            }
+            cursorPos_edit.y+=maxSize_rowHeights.at(_cellMat_y);
+            cursorPos_edit.y+=symb_delimiter_rows.size(); /// skip over PSV matrix's row delimiter
         }
-        if(borderSymb_row.size()>0) {
-            for(;temporaryFinalString.size()<tableDimensions.x; temporaryFinalString+=borderSymb_row);
-            if(temporaryFinalString.size() > tableDimensions.x) temporaryFinalString.erase(tableDimensions.x, std::string::npos);
-            temporaryFinalString+=rowSeparator;
-        }
+
         
-        /// Draw border/background symbols and related
+        /// Draw border/background symbols and related:
+        ////     because the editing of cell text content displayed on the PSVmatrix is handled by the previous section, the border drawing can be toggled to only be printed during resizing of dim
+
+        for(size_t _i=0; _i<tableDimensions.x-symb_border_row.size(); _i+=this->symb_border_row.size()) {
+            memcpy(&PrintableStringVectorMatrix.at(0).at(_i),   &symb_border_row.at(0), symb_border_row.size());
+            memcpy(&PrintableStringVectorMatrix.back().at(_i),  &symb_border_row.at(0), symb_border_row.size());
+        }
+        memcpy(&PrintableStringVectorMatrix.at(0).at(tableDimensions.x-symb_border_row.size()),     &symb_border_row.at(0), tableDimensions.x-symb_border_row.size());
+        memcpy(&PrintableStringVectorMatrix.back().at(tableDimensions.x-symb_border_row.size()),    &symb_border_row.at(0), tableDimensions.x-symb_border_row.size());
+        
+        for(size_t _y=1; _y<tableDimensions.y-1; _y++) {
+            memcpy(&PrintableStringVectorMatrix.at(_y).at(0), &symb_border_column.at(0), symb_border_column.size());
+            memcpy(&PrintableStringVectorMatrix.at(_y).at(tableDimensions.y-symb_border_column.size()), &symb_border_column.at(0), symb_border_column.size());
+        }
 
 
         /// Draw text that ignores/goes-over border/delimiter symbols
 
+        cursorPos_edit = Pos2d<int>(symb_border_column.size(), symb_border_row.size());
+        for(size_t _cellMat_y=0; _cellMat_y<tableOfCells.size(); _cellMat_y++) { /// iterate over each row of cells
+
+            for(size_t _row_y=0; _row_y<maxSize_rowHeights.at(_cellMat_y); _row_y++) { /// iterate over each row/character-height of each cell-row
+
+                cursorPos_edit.x=1; /// set start indexing pos at new row's first character after border column
+                for(size_t _cellMat_x=0; _cellMat_x<tableOfCells.at(0).size(); _cellMat_x++) { /// iterate over each column of cells
+                    core::Cell& cellRef = tableOfCells.at(_cellMat_y).at(_cellMat_x);
+
+                    if(cellRef.isModified__text && !cellRef.cellContent_text.rule_followDelimiter) {
+                        if(cellRef.text.size()>_row_y) { /// !NOTE: Will need further revision to account for strings shorter than previous iterations
+                            std::string textLine = cellRef.text.at(_row_y);
+                            if(cursorPos_edit.x+textLine.size()>=tableDimensions.x) textLine.erase(tableDimensions.x-cursorPos_edit.x);
+                            
+                            memcpy(&PrintableStringVectorMatrix.at(cursorPos_edit.y).at(cursorPos_edit.x), &textLine.at(0), maxSize_columnWidths.at(_cellMat_x));
+                        }
+                        else {
+                            std::string tempStr_emptyCellLine(maxSize_columnWidths.at(_cellMat_x), ' ');
+                            memcpy(&PrintableStringVectorMatrix.at(cursorPos_edit.y).at(cursorPos_edit.x), &tempStr_emptyCellLine.at(0), maxSize_columnWidths.at(_cellMat_x));
+                        }
+                    }
+                    
+                    cursorPos_edit.x+=maxSize_columnWidths.at(_cellMat_x);
+                    cursorPos_edit.x+=symb_delimiter_columns.size(); /// skip over PSV matrix's column delimiter
+                }
+
+            }
+            cursorPos_edit.y+=maxSize_rowHeights.at(_cellMat_y);
+            cursorPos_edit.y+=symb_delimiter_rows.size(); /// skip over PSV matrix's row delimiter
+        }
 
     }
 
@@ -723,7 +766,7 @@ namespace TUINC {
     core::Table::Table(const Table& _toCopy): 
         tableOfCells(_toCopy.tableOfCells), dimSize_table(_toCopy.dimSize_table), maxSize_columnWidths(_toCopy.maxSize_columnWidths), maxSize_rowHeights(_toCopy.maxSize_rowHeights), string_table(_toCopy.string_table),
         scalMethod_columns(_toCopy.scalMethod_columns), scalMethod_rows(_toCopy.scalMethod_rows), rowSeparator(_toCopy.rowSeparator),
-        delimiter_columns(_toCopy.delimiter_columns), delimiter_rows(_toCopy.delimiter_rows), borderSymb_column(_toCopy.borderSymb_column), borderSymb_row(_toCopy.borderSymb_row)
+        symb_delimiter_columns(_toCopy.symb_delimiter_columns), symb_delimiter_rows(_toCopy.symb_delimiter_rows), symb_border_column(_toCopy.symb_border_column), symb_border_row(_toCopy.symb_border_row)
     {
         this->helper_updateTablePtrInCells();
         
@@ -733,7 +776,7 @@ namespace TUINC {
     core::Table::Table(Table&& _toMove):
         tableOfCells(std::move(_toMove.tableOfCells)), dimSize_table(std::move(_toMove.dimSize_table)), maxSize_columnWidths(std::move(_toMove.maxSize_columnWidths)), maxSize_rowHeights(std::move(_toMove.maxSize_rowHeights)), string_table(std::move(_toMove.string_table)),
         scalMethod_columns(std::move(_toMove.scalMethod_columns)), scalMethod_rows(std::move(_toMove.scalMethod_rows)), rowSeparator(std::move(_toMove.rowSeparator)),
-        delimiter_columns(std::move(_toMove.delimiter_columns)), delimiter_rows(std::move(_toMove.delimiter_rows)), borderSymb_column(std::move(_toMove.borderSymb_column)), borderSymb_row(std::move(_toMove.borderSymb_row))
+        symb_delimiter_columns(std::move(_toMove.symb_delimiter_columns)), symb_delimiter_rows(std::move(_toMove.symb_delimiter_rows)), symb_border_column(std::move(_toMove.symb_border_column)), symb_border_row(std::move(_toMove.symb_border_row))
     {
         this->helper_updateTablePtrInCells();
         
@@ -749,10 +792,10 @@ namespace TUINC {
         string_table  = _toCopy.string_table;
         scalMethod_columns    = _toCopy.scalMethod_columns;
         scalMethod_rows   = _toCopy.scalMethod_rows;
-        delimiter_columns = _toCopy.delimiter_columns;
-        delimiter_rows    = _toCopy.delimiter_rows;
-        borderSymb_column = _toCopy.borderSymb_column;
-        borderSymb_row    = _toCopy.borderSymb_row;
+        symb_delimiter_columns = _toCopy.symb_delimiter_columns;
+        symb_delimiter_rows    = _toCopy.symb_delimiter_rows;
+        symb_border_column = _toCopy.symb_border_column;
+        symb_border_row    = _toCopy.symb_border_row;
         rowSeparator  = _toCopy.rowSeparator;
         
     }
@@ -765,10 +808,10 @@ namespace TUINC {
         std::swap(string_table, _toMove.string_table);
         std::swap(scalMethod_columns, _toMove.scalMethod_columns);
         std::swap(scalMethod_rows, _toMove.scalMethod_rows);
-        std::swap(delimiter_columns, _toMove.delimiter_columns);
-        std::swap(delimiter_rows, _toMove.delimiter_rows);
-        std::swap(borderSymb_column, _toMove.borderSymb_column);
-        std::swap(borderSymb_row,  _toMove.borderSymb_row);
+        std::swap(symb_delimiter_columns, _toMove.symb_delimiter_columns);
+        std::swap(symb_delimiter_rows, _toMove.symb_delimiter_rows);
+        std::swap(symb_border_column, _toMove.symb_border_column);
+        std::swap(symb_border_row,  _toMove.symb_border_row);
         std::swap(rowSeparator,  _toMove.rowSeparator);
         
     }

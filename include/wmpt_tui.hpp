@@ -84,7 +84,13 @@ namespace TUINC {
         cell_types      cellType{null};
         Pos2d<int>      pos;
 
-        std::string     text;
+        // std::string     text;
+
+        /**
+         * Container for the text that's stored in the cell. Each element/string represents one line of the total string box,
+         *  meaning no newline characters are allowed
+         */
+        std::vector<std::string>    text;
         type_cellFunc   function;
         Menu            menu;      //cell stores a menu object entirely in itself
         
@@ -111,6 +117,15 @@ namespace TUINC {
         friend class Table;
         friend class Menu;
 
+        /**
+         * @brief Parses a string and splits it into multiple strings at newline characters.
+         * 
+         * @param _fullString The input string to be parsed for newline characters.
+         * 
+         * @return A vector of strings, where each element represents a line from the input
+         *         string that was separated by newline characters.
+         */
+        std::vector<std::string> _helper_parseStringForNewlines(std::string _fullString);
 
         public:
     
@@ -247,14 +262,15 @@ namespace TUINC {
 
         style_axisCellScalingMethod scalMethod_columns{style_axisCellScalingMethod::fitMenuAxis_even};
         style_axisCellScalingMethod scalMethod_rows{style_axisCellScalingMethod::fitMenuAxis_even};
-
-        std::string delimiter_columns{"|"};
-        std::string delimiter_rows{"-"};
-
-        ///for now we ignore specific corner symbols
-        std::string borderSymb_column{"|"};
-        std::string borderSymb_row{"-"};
-        std::string rowSeparator{"\n"};
+        
+        /// Member variables that store strings as symbols for the different aspects of the Terminal User Interface.
+        ///     the contents are not allowed to be completely empty and must at least hold a single space to separate the different cells.
+        ///     for now we ignore specific corner symbols
+        std::string symb_delimiter_columns{"|"};
+        std::string symb_delimiter_rows{"-"};
+        std::string symb_border_column{"|"};
+        std::string symb_border_row{"-"};
+        std::string rowSeparator{"\n"}; // currently not used
         
 
         public:
