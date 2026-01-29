@@ -52,6 +52,10 @@ enum itemType {
     itemType_Component,
     itemType_Set
 };
+/// @brief Finds and returns the itemType enumeration value corresponding to the given string.
+/// @param _typeStr The string representation of the item type to search for.
+/// @return The itemType enumeration value that matches the input string.
+/// @throws std::invalid_argument if the provided string does not correspond to any known itemType.
 itemType find_itemType(std::string _typeStr);
 inline std::string getStrFromType_itemType(itemType _type) {
     switch (_type) {
@@ -119,6 +123,7 @@ struct __keyPressHandler_keyDetails {
         return os;
     }
 };
+
 class keyPressHandler {
 private:
     // std::vector<int> __keys_pressed;
@@ -219,6 +224,22 @@ enum keyASCII {
 
 
 namespace PriceTracker {
+    /**
+     * apiCallTimer
+     * Thread-safe API call timer that enforces rate limiting for Warframe Market API requests.
+     * 
+     * This class manages API requests with a minimum delay between consecutive calls to comply
+     * with rate limiting policies. It uses mutex-based synchronization to ensure thread-safe
+     * access across multiple threads.
+     * 
+     * 
+     * - Enforces a minimum delay of 500ms between API requests
+     * - Uses a static mutex to synchronize calls across all instances
+     * - Tracks the timestamp of the previous API request globally
+     * 
+     * Thread-safe for concurrent API calls. All instances share a single
+     * static mutex that serializes access to the Warframe Market API.
+     */
     class apiCallTimer {
     private:
         const std::chrono::duration<double> rateLimit_minRequestDelay{std::chrono::milliseconds(500)};

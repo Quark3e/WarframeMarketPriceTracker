@@ -337,8 +337,14 @@ namespace TUINC {
         ~Menu();
         Menu& operator=(const Menu& _toCopy);
         Menu& operator=(Menu&& _toMove);
-            
-        void Driver();
+        
+        enum class MenuDriver_returnType {
+            success,
+            error,
+
+        };
+
+        MenuDriver_returnType Driver();
     
     };
 

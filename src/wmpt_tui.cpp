@@ -703,7 +703,7 @@ namespace TUINC {
             cursorPos_edit.y+=symb_delimiter_rows.size(); /// skip over PSV matrix's row delimiter
         }
 
-        
+
         /// Draw border/background symbols and related:
         ////     because the editing of cell text content displayed on the PSVmatrix is handled by the previous section, the border drawing can be toggled to only be printed during resizing of dim
 
@@ -954,7 +954,10 @@ namespace TUINC {
 
     }
 
-    void core::Menu::Driver() {
+    core::Menu::MenuDriver_returnType core::Menu::Driver() {
+        /// initialise variables
+
+
 
     }
     
