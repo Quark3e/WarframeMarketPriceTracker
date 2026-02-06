@@ -16,6 +16,11 @@
 #include "wmpt_useful.hpp"
 #include <Pos2d.hpp>
 
+#ifndef NOMINMAX
+# define NOMINMAX
+#endif
+// #include <windows.h>
+#undef max
 
 
 namespace TUINC {
@@ -52,6 +57,64 @@ namespace TUINC {
     /// @details This helper function queries the console window to determine its current
     ///          size in terms of columns (width) and rows (height).
     Pos2d<size_t> helper_getConsoleDimensions();
+
+    
+    namespace KeyHandler {
+        /// @brief Retrieves the key codes from user input.
+        /// @return A vector of integers representing the key codes pressed by the user.
+        std::vector<int> helper_getKeyCode();
+        
+                
+        struct __keyPressHandler_keyDetails {
+            std::chrono::steady_clock::time_point startTime; // time since press start
+            bool isPressed; // whether the key is actually being pressed
+            bool active; // whether this key is to give a signal as being pressed.
+
+
+            operator std::string();
+
+            friend auto operator<<(std::ostream &os, __keyPressHandler_keyDetails const& m) -> std::ostream& {
+                os << m.startTime.time_since_epoch().count() << "," << std::boolalpha << m.isPressed <<  ","<< m.active;
+
+                return os;
+            }
+        };
+
+        class keyPressHandler {
+        private:
+            // std::vector<int> __keys_pressed;
+            // std::vector<std::chrono::steady_clock::time_point> __keys_timePressed;
+            std::unordered_map<int, __keyPressHandler_keyDetails> __pressed_keys;
+
+            std::vector<int> __active_keys;
+
+        public:
+            
+            /// \brief Duration in seconds for the decay of key press type difference.
+            /// 
+            /// Represents the time interval (0.3 seconds) after which the accumulated
+            /// difference in key press types will decay or reset. This is used to track
+            /// and manage the decay of input state changes in the terminal user interface.
+            std::chrono::duration<double> pressTypeDifrDecayDur_seconds = std::chrono::duration<double>(0.3);
+
+            keyPressHandler();
+            keyPressHandler(const keyPressHandler& _toCopy);
+            keyPressHandler(keyPressHandler&& _toSwap);
+            ~keyPressHandler() {}
+            keyPressHandler& operator=(const keyPressHandler& _toCopy);
+            keyPressHandler& operator=(keyPressHandler&& _toMove);
+
+            const std::vector<int>& updateKeys();
+
+            const std::vector<int>& getActiveKeys();
+            __keyPressHandler_keyDetails getKey(int _key);
+            std::unordered_map<int, __keyPressHandler_keyDetails> getAllKeyDetails();
+
+            bool isPressed(int _key);
+
+        };
+    };
+
 
     enum class cell_types {
         null    = 0,
