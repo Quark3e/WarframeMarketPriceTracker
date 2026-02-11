@@ -13,6 +13,8 @@
 #include <functional>
 #include <map>
 
+#include <atomic>
+
 #include "wmpt_useful.hpp"
 #include <Pos2d.hpp>
 
@@ -335,6 +337,8 @@ namespace TUINC {
         std::string symb_border_row{"-"};
         std::string rowSeparator{"\n"}; // currently not used
         
+
+        std::atomic<bool> bool_driverRunning{false};
 
         public:
 

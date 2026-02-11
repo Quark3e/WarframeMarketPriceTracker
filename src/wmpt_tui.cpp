@@ -1075,12 +1075,30 @@ namespace TUINC {
     }
 
     core::Menu::MenuDriver_returnType core::Menu::Driver() {
+        /**
+         * Deals only with the TUI aspects as this namespace will be moved into a separate dedicated external library later on.
+         * 
+         * Will just keep track of cursorpos, move acounts and call functions based on key inputs. Will prob handle with return code's e.t.c and so
+         * I will need to figure out how to pass member functions as core::Cell objects' functions'.
+         * 
+         * Will prob include a frame-rate manager to set the framerate to a locked amount.
+         * 
+         */
+
         /// initialise variables
 
         KeyHandler::keyPressHandler keyObj;
         keyObj.updateKeys();
 
+        Pos2d<size_t> TUI_cursorPos;
         
+
+        bool_driverRunning = true;
+        while(bool_driverRunning.load()) {
+            
+
+        }
+
 
     }
     
