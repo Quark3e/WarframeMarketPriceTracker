@@ -1093,10 +1093,15 @@ namespace TUINC {
         Pos2d<size_t> TUI_cursorPos;
         
 
+        const float limit_maxFPS = 60;
+        std::chrono::stead_clock::time_point tp_1 = std::chrono::steady_clock::now(), tp_2 = std::chrono::steady_clock::now();
+        
+        
         bool_driverRunning = true;
         while(bool_driverRunning.load()) {
             
 
+            
         }
 
 
