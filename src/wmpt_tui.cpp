@@ -1094,14 +1094,25 @@ namespace TUINC {
         
 
         const float limit_maxFPS = 60;
-        std::chrono::stead_clock::time_point tp_1 = std::chrono::steady_clock::now(), tp_2 = std::chrono::steady_clock::now();
-        
+        std::chrono::steady_clock::time_point timeP_1 = std::chrono::steady_clock::now(), timeP_2 = std::chrono::steady_clock::now();
+        std::chrono::duration<double, std::milli> intervalDuration_ms = std::chrono::duration<double, std::milli>(0.001);
+        std::chrono::duration<double, std::milli> intervalDuration_ms_refrDur(1000.0/60);
+        double measured_fps = 0;
         
         bool_driverRunning = true;
         while(bool_driverRunning.load()) {
+            /// ----------------------------------------
+            
             
 
-            
+            /// ----------------------------------------
+            timeP_2 = std::chrono::steady_clock::now();
+            intervalDuration_ms = timeP_2 - timeP_1;
+            if(intervalDuration_ms < intervalDuration_ms_refrDur) {
+                std::this_thread::sleep_for(intervalDuration_ms_refrDur-intervalDuration_ms);
+            }
+            measured_fps = 1.0/(0.001*intervalDuration_ms.count());
+            timeP_1 = std::chrono::steady_clock::now();
         }
 
 

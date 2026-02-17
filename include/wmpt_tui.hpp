@@ -29,6 +29,18 @@ namespace TUINC {
 
     /// ---------- custom independant library stuff ---------
     
+    /**
+     * @brief ANSI escape code related helper methods.
+     * 
+     */
+    namespace ANSIec {
+        const std::string code = "\x1B[";
+
+        void setCursorPos(Pos2d<size_t> _pos);
+        
+    };
+
+
     enum Results {
         Success,
         ThreadInitialisationFailure,
